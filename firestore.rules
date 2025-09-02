@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(userId) { return request.auth != null && request.auth.uid == userId; }
+
+    // HABITS META: users/{uid}/meta/habits
+    match /users/{userId}/meta/habits {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && validateHabitsMeta(request.resource.data);
+    }
+
+    // MONTH DOCS: users/{uid}/months/{ym}
+    match /users/{userId}/months/{ym} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && validateMonthDoc(request.resource.data);
+    }
+
+    // Fallback: deny other user subpaths unless explicitly allowed above
+    match /users/{userId}/{document=**} {
+      allow read: if isOwner(userId);
+      allow write: if false; // locked
+    }
+
+    function validateHabitsMeta(data) {
+      return data.keys().hasOnly(['habits']) &&
+             data.habits is list &&
+             data.habits.size() <= 200; // simple size guard
+    }
+
+    function validateMonthDoc(data) {
+      // Expect map: habitId -> map(day -> bool)
+      return data.keys().size() <= 250; // soft cap
+    }
+  }
+}

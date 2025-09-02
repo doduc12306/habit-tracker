@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Habit Tracker Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="vendor/tailwindcdn.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+              400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+              800: '#3730a3', 900: '#312e81', 950: '#1e1b4b'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <script crossorigin src="vendor/react.production.min.js"></script>
+  <script crossorigin src="vendor/react-dom.production.min.js"></script>
+  <script src="vendor/babel.min.js"></script>
+  
+  <!-- Load Firebase config from external file -->
+  <script src="firebase-config.js"></script>
+
+  <!-- Firebase SDKs (module just to import and attach to window) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+    
+    // firebaseConfig is loaded from firebase-config.js
+    const app = initializeApp(window.firebaseConfig);
+    getAnalytics(app);
+    window.db = getFirestore(app);
+    window.auth = getAuth(app);
+    window.provider = new GoogleAuthProvider();
+    window.firebaseApi = { doc, onSnapshot, setDoc, signInWithPopup, signOut, onAuthStateChanged };
+  </script>
+
+  <style>
+    html, body { height: 100%; font-family: 'Inter', sans-serif; }
+    :root {
+      --side-w: 240px;
+      --day-min: 38px;
+      --bar-max-h: 60px;
+      --row-h: 52px;
+    }
+  .card { background:#fff; border:1px solid #e2e8f0; border-radius:0.75rem; padding:1rem; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+  @media (min-width:640px){ .card{padding:1.25rem;} }
+  .soft-scroll { scroll-behavior:smooth; }
+  .habit-grid-wrapper { position:relative; overflow-x:auto; }
+  .fade-left::before { content:""; position:sticky; left:0; width:24px; height:100%; display:block; pointer-events:none; z-index:10; background:linear-gradient(to right, #f1f5f9, rgba(241,245,249,0)); }
+    .fade-left::before {
+      content: ""; position: sticky; left: 0; width: 24px; height: 100%; display: block;
+      pointer-events: none; z-index: 10;
+      background: linear-gradient(to right, #f1f5f9, rgba(241, 245, 249, 0));
+    }
+    .dark .fade-left::before {
+        background: linear-gradient(to right, #0f172a, rgba(15, 23, 42, 0));
+    }
+  </style>
+</head>
+<body class="bg-slate-100">
+<div id="root"></div>
+
+<!-- Enable ES module imports inside Babel-transpiled code by adding data-type="module" -->
+<!-- Core utility & component scripts (no modules, global scope) -->
+<script type="text/babel" data-presets="react" src="src/utils.js"></script>
+<script type="text/babel" data-presets="react" src="src/components/AddHabit.js"></script>
+<script type="text/babel" data-presets="react" src="src/components/HabitScheduleButton.js"></script>
+<script type="text/babel" data-presets="react" src="src/components/MiniCalendar.js"></script>
+<script type="text/babel" data-presets="react" src="src/components/MonthYearPicker.js"></script>
+<script type="text/babel" data-presets="react" src="src/components/Timer.js"></script>
+<script type="text/babel" data-presets="react" src="src/App.js"></script>
+</body>
+</html>
