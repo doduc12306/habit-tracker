@@ -14,7 +14,6 @@ const memo = React.memo;
 // component references from global scope
 const MemoizedMiniCalendar = memo(MiniCalendar);
 const MemoizedHabitScheduleButton = memo(HabitScheduleButton);
-const MemoizedTimer = memo(Timer);
 const MemoizedMonthYearPicker = memo(MonthYearPicker);
 const MemoizedAddHabit = memo(AddHabit);
 
@@ -41,8 +40,8 @@ const MemoizedHabitRow = memo(({ habit, monthChecks, daysList, ym, onToggle }) =
                 const active = isActiveOnDate(habit, date);
                 const checked = !!row[d];
                 const base = "h-9 w-9 rounded-lg border text-sm transition-all shadow-sm outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-white flex items-center justify-center";
-                const activeUnchecked = "border-slate-300 bg-white hover:bg-primary-50 hover:border-primary-400";
-                const activeChecked = "border-primary-600 bg-primary-600 text-white font-bold";
+                const activeUnchecked = "border-slate-300 bg-white hover:bg-green-50 hover:border-green-400";
+                const activeChecked = "border-green-600 bg-green-600 text-white font-bold";
                 const inactive = "border-dashed border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed";
                 return (
                     <button key={d} onClick={() => active && onToggle(habit.id, d)} className={[base, active ? (checked ? activeChecked : activeUnchecked) : inactive].join(" ")} title={`Day ${d}${active ? "" : " (inactive)"}`} disabled={!active}>{checked ? "✓" : ""}</button>
@@ -59,7 +58,7 @@ const MemoizedDailyCompletionBar = memo(({ perDayCompletion, daysList, dayGridTe
                 const o = perDayCompletion[i - 1];
                 const h = o.activeCount ? (o.doneCount / o.activeCount) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-max-h')) : 0;
                 return (
-                    <div key={i} className="w-full rounded-t bg-primary-500" title={`Day ${i}: ${o.doneCount}/${o.activeCount}`} style={{ height: `${h}px`, transition: "height 300ms ease" }} />
+                    <div key={i} className="w-full rounded-t bg-green-500" title={`Day ${i}: ${o.doneCount}/${o.activeCount}`} style={{ height: `${h}px`, transition: "height 300ms ease" }} />
                 );
             })}
         </div>
@@ -433,7 +432,6 @@ function App() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="space-y-6 order-last lg:order-first">
-              <div className="card"><MemoizedTimer /></div>
               <div className="card">
                 <h2 className="text-lg font-semibold mb-3">Habits</h2>
                 <ul className="space-y-2 mb-4">
