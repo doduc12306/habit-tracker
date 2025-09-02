@@ -18,14 +18,14 @@ const MemoizedMonthYearPicker = memo(MonthYearPicker);
 const MemoizedAddHabit = memo(AddHabit);
 
 const MemoizedHabitListItem = memo(({ habit, progress, onRemove, onUpdateSchedule }) => (
-    <li className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3">
+    <li className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
         <div>
-            <div className="font-medium text-slate-900">{habit.name}</div>
-            <div className="text-xs text-slate-500">{progress.pct}% complete</div>
+            <div className="font-medium text-slate-900 dark:text-slate-100">{habit.name}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">{progress.pct}% complete</div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
             <MemoizedHabitScheduleButton habit={habit} onChange={(s) => onUpdateSchedule(habit.id, s)} />
-            <button onClick={() => onRemove(habit.id)} className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-red-600 hover:bg-red-50 transition-colors">Remove</button>
+            <button onClick={() => onRemove(habit.id)} className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 py-1 text-xs text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 transition-colors">Remove</button>
         </div>
     </li>
 ));
@@ -34,15 +34,15 @@ const MemoizedHabitRow = memo(({ habit, monthChecks, daysList, ym, onToggle }) =
     const row = monthChecks[habit.id] || {};
     const dayGridTemplate = `repeat(${daysList.length}, minmax(var(--day-min),1fr))`;
     return (
-        <div className="grid items-center justify-items-center gap-2 px-3 border-b border-slate-200 bg-white" style={{ gridTemplateColumns: dayGridTemplate, minHeight: "var(--row-h)" }}>
+        <div className="grid items-center justify-items-center gap-2 px-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style={{ gridTemplateColumns: dayGridTemplate, minHeight: "var(--row-h)" }}>
             {daysList.map(d => {
                 const date = new Date(ym[0], ym[1], d);
                 const active = isActiveOnDate(habit, date);
                 const checked = !!row[d];
-                const base = "h-9 w-9 rounded-lg border text-sm transition-all shadow-sm outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-white flex items-center justify-center";
-                const activeUnchecked = "border-slate-300 bg-white hover:bg-green-50 hover:border-green-400";
+                const base = "h-9 w-9 rounded-lg border text-sm transition-all shadow-sm outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center justify-center";
+                const activeUnchecked = "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-green-50 dark:hover:bg-green-900/50 hover:border-green-400 dark:hover:border-green-700";
                 const activeChecked = "border-green-600 bg-green-600 text-white font-bold";
-                const inactive = "border-dashed border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed";
+                const inactive = "border-dashed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 cursor-not-allowed";
                 return (
                     <button key={d} onClick={() => active && onToggle(habit.id, d)} className={[base, active ? (checked ? activeChecked : activeUnchecked) : inactive].join(" ")} title={`Day ${d}${active ? "" : " (inactive)"}`} disabled={!active}>{checked ? "✓" : ""}</button>
                 );
@@ -51,126 +51,91 @@ const MemoizedHabitRow = memo(({ habit, monthChecks, daysList, ym, onToggle }) =
     );
 });
 
-const MemoizedDailyCompletionBar = memo(({ perDayCompletion, daysList, dayGridTemplate, allDoneDays }) => (
-    <div className="px-3 py-4 bg-white">
-        <div className="grid items-end gap-2" style={{ gridTemplateColumns: dayGridTemplate }}>
-            {daysList.map((i) => {
-                const o = perDayCompletion[i - 1];
-                const h = o.activeCount ? (o.doneCount / o.activeCount) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-max-h')) : 0;
-                return (
-                    <div key={i} className="w-full rounded-t bg-green-500" title={`Day ${i}: ${o.doneCount}/${o.activeCount}`} style={{ height: `${h}px`, transition: "height 300ms ease" }} />
-                );
-            })}
-        </div>
-        <div className="mt-2 text-xs text-slate-500">{allDoneDays.size} day(s) with all active habits completed.</div>
-    </div>
-));
-
-const StreakDisplay = memo(({ streak }) => (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="text-sm font-medium uppercase tracking-wider text-slate-500">Streak</div>
-        <div className="mt-1 text-3xl font-bold text-slate-900">{streak.current}<span className="text-xl font-medium text-slate-400"> / {streak.longest}</span></div>
-        <div className="mt-1 text-xs text-slate-500">Current vs longest streak of 100% completion.</div>
-    </div>
-));
-
-const MonthInfo = memo(({ monthStart, totalDays }) => (
-    <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm text-center">
-            <div className="text-xs uppercase tracking-wide text-slate-500">Start</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-800">{MONTHS_ABBR[monthStart.getMonth()]} 1</div>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm text-center">
-            <div className="text-xs uppercase tracking-wide text-slate-500">End</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-800">{endOfMonth(monthStart).getDate()}</div>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm text-center">
-            <div className="text-xs uppercase tracking-wide text-slate-500">Days</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-800">{String(totalDays)}</div>
-        </div>
-    </div>
-));
-
-const AppHeader = memo(({ user, onSignIn, onSignOut }) => (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-                <h1 className="text-xl font-bold text-slate-900">Habit Tracker</h1>
-                <div className="flex items-center gap-4">
-                    {user ? (
-                        <>
-                            <span className="text-sm font-medium">Welcome, {user.displayName}</span>
-                            <button onClick={onSignOut} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Sign Out</button>
-                        </>
-                    ) : (
-                        <button onClick={onSignIn} className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 transition-colors">Sign in with Google</button>
-                    )}
-                </div>
+    // Sticky stats + month picker bar
+    const StatsBar = memo(({ ym, setYm, habitsCount, allDoneCount, allStreak }) => {
+      return (
+        <div className="sticky top-[4rem] z-40 bg-white/85 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-3 space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+            <div className="w-full md:w-60"><MemoizedMonthYearPicker value={ym} onChange={setYm} /></div>
+            <div className="flex-1 grid grid-cols-3 sm:grid-cols-6 md:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div className="card py-2 px-3 shadow-sm dark:bg-slate-900/50 dark:border-slate-800 flex flex-col items-center justify-center">
+                <div className="text-[10px] sm:text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Habits</div>
+                <div className="mt-0.5 text-xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{habitsCount}</div>
+              </div>
+              <div className="card py-2 px-3 shadow-sm dark:bg-slate-900/50 dark:border-slate-800 flex flex-col items-center justify-center">
+                <div className="text-[10px] sm:text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">All-done days</div>
+                <div className="mt-0.5 text-xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{allDoneCount}</div>
+              </div>
+              <div className="card py-2 px-3 shadow-sm dark:bg-slate-900/50 dark:border-slate-800 flex flex-col items-center justify-center">
+                <div className="text-[10px] sm:text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Streak</div>
+                {(() => { const c = allStreak.current; let f = 0; if (c>0){ if(c<=10)f=1; else if(c<=20)f=2; else f=3;} return (
+                  <div className="mt-0.5 flex items-center gap-1"><span className="text-xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{c}</span><span className="flex" aria-hidden="true">{Array.from({length:f}).map((_,i)=><span key={i}>🔥</span>)}</span></div>
+                ); })()}
+              </div>
             </div>
+          </div>
         </div>
-    </header>
-));
+      );
+    });
 
-const HabitManager = memo(({ habits, perHabitProgress, onAdd, onRemove, onUpdateSchedule }) => (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-800 mb-3">Manage Habits</h2>
-        <ul className="space-y-2">
-            {habits.map(h => (
-                <MemoizedHabitListItem
-                    key={h.id}
-                    habit={h}
-                    progress={perHabitProgress.find(x => x.id === h.id) || { pct: 0 }}
-                    onRemove={onRemove}
-                    onUpdateSchedule={onUpdateSchedule}
-                />
-            ))}
-        </ul>
-        <MemoizedAddHabit onAdd={onAdd} />
-    </div>
-));
-
-const Notes = memo(() => (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-800 mb-3">Notes</h2>
-        <textarea
-            className="w-full h-32 rounded-md border border-slate-300 p-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            placeholder="Write your notes here..."
-        ></textarea>
-    </div>
-));
-
-const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, onToggle, perDayCompletion, allDoneDays }) => (
-  <div className="w-full overflow-hidden">
-    <div className="grid grid-cols-[var(--side-w)_minmax(0,1fr)] border-b border-slate-200 bg-slate-100">
-      <div className="flex items-center px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-600 border-r border-slate-200">Habit</div>
+const MemoizedDailyCompletionBar = memo(({ perDayCompletion, daysList, dayGridTemplate, allDoneDays }) => (
+    <div className="px-3 py-4 bg-white dark:bg-slate-800">
+        <div className="grid items-end gap-2" style={{ gridTemplateColumns: dayGridTemplate }}>
+          {daysList.map((i) => {
+            const o = perDayCompletion[i - 1];
+            const h = o.activeCount ? (o.doneCount / o.activeCount) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-max-h')) : 0;
+            return (
+              <div key={i} className="w-full rounded-t bg-green-500" title={`Day ${i}: ${o.doneCount}/${o.activeCount}`} style={{ height: `${h}px`, transition: 'height 300ms ease' }} />
+            );
+          })}
+        </div>
+        <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">{allDoneDays.size} day(s) with all active habits completed.</div>
+      </div>
+    ));
+const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, onToggle, perDayCompletion, allDoneDays, perHabitProgress }) => (
+  <div className="w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/30">
+    <div className="grid grid-cols-[var(--side-w)_minmax(0,1fr)] sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-900/70 backdrop-blur">
+      <div className="flex items-center px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700">Habit</div>
       <div className="relative">
         <div className="fade-left absolute inset-y-0 left-0"></div>
-        <div className="grid items-center gap-2 px-3 py-2 text-center text-[11px] font-medium text-slate-500 justify-items-center" style={{ gridTemplateColumns: dayGridTemplate }}>
+        <div className="grid items-center gap-2 px-3 py-2 text-center text-[11px] font-medium text-slate-500 dark:text-slate-400 justify-items-center" style={{ gridTemplateColumns: dayGridTemplate }}>
           {daysList.map(d => <div key={d} className="rounded-md w-full select-none">{d}</div>)}
         </div>
       </div>
     </div>
-    <div className="grid grid-cols-[var(--side-w)_minmax(0,1fr)]">
-      <div className="border-r border-slate-200 bg-slate-50">
-        {habits.map(h => (
-          <div key={h.id} className="flex items-center gap-3 px-3 text-sm text-slate-800 border-b border-slate-200 bg-white" style={{ width: 'var(--side-w)', minWidth: 'var(--side-w)', height: 'var(--row-h)' }}>
-            <div className="h-2 w-2 rounded-full bg-slate-700" />
-            <div className="font-medium truncate" title={h.name}>{h.name}</div>
-          </div>
-        ))}
-        <div className="px-3 py-3 border-t border-slate-200 bg-white text-xs text-slate-500" style={{ width: 'var(--side-w)', minWidth: 'var(--side-w)' }}>Daily Completion</div>
+    <div className="grid grid-cols-[var(--side-w)_minmax(0,1fr)] max-h-[60vh] overflow-y-auto">
+      <div className="border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30">
+        {habits.map((h, idx) => {
+          const prog = perHabitProgress.find(p => p.id === h.id)?.pct ?? 0;
+          return (
+            <div key={h.id} className={"group flex gap-3 px-3 text-sm border-b border-slate-200 dark:border-slate-800 transition-colors " + (idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/70') + ' hover:bg-green-50/60 dark:hover:bg-green-900/20'} style={{ width: 'var(--side-w)', minWidth: 'var(--side-w)', height: 'var(--row-h)' }}>
+              <div className="flex flex-col justify-center w-full overflow-hidden">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-slate-500 dark:bg-slate-400 flex-shrink-0" />
+                  <div className="font-medium truncate text-slate-800 dark:text-slate-200" title={h.name}>{h.name}</div>
+                  <span className="ml-auto text-[11px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">{prog}%</span>
+                </div>
+                <div className="mt-1 h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                  <div className="h-full bg-green-500 dark:bg-green-500 transition-all" style={{ width: prog + '%' }} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div className="px-3 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-xs text-slate-600 dark:text-slate-400" style={{ width: 'var(--side-w)', minWidth: 'var(--side-w)' }}>Daily Completion</div>
       </div>
-      <div className="relative overflow-x-auto bg-white">
+      <div className="relative overflow-x-auto bg-white dark:bg-slate-900/30">
         <div className="min-w-full">
-          {habits.map(h => (
-            <MemoizedHabitRow
-              key={h.id}
-              habit={h}
-              monthChecks={monthChecks}
-              daysList={daysList}
-              ym={ym}
-              onToggle={onToggle}
-            />
+          {habits.map((h, idx) => (
+            <div key={h.id} className={(idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/70') + ' group hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-colors'}>
+              <MemoizedHabitRow
+                habit={h}
+                monthChecks={monthChecks}
+                daysList={daysList}
+                ym={ym}
+                onToggle={onToggle}
+              />
+            </div>
           ))}
           <MemoizedDailyCompletionBar perDayCompletion={perDayCompletion} daysList={daysList} dayGridTemplate={dayGridTemplate} allDoneDays={allDoneDays} />
         </div>
@@ -179,14 +144,26 @@ const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, on
   </div>
 ));
 
-const Dashboard = memo(({ monthStart, totalDays, allDoneDays, allStreak }) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <MemoizedMiniCalendar monthStart={monthStart} days={totalDays} allDoneDays={allDoneDays} />
-        <div className="space-y-4">
-            <StreakDisplay streak={allStreak} />
-            <MonthInfo monthStart={monthStart} totalDays={totalDays} />
+// Re-introduced AppHeader (was removed during layout refactor)
+const AppHeader = memo(({ user, onSignIn, onSignOut }) => (
+  <header className="bg-white/80 dark:bg-gray-950/70 backdrop-blur-sm shadow-sm sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800">
+    <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <div className="flex h-16 items-center justify-between">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Habit Tracker</h1>
+        <div className="flex items-center gap-3">
+          <button onClick={() => window.toggleTheme && window.toggleTheme()} aria-label="Toggle theme" className="rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Theme</button>
+          {user ? (
+            <>
+              <span className="hidden sm:inline text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[160px]">{user.displayName}</span>
+              <button onClick={onSignOut} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Sign Out</button>
+            </>
+          ) : (
+            <button onClick={onSignIn} className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 transition-colors">Sign in</button>
+          )}
         </div>
+      </div>
     </div>
+  </header>
 ));
 
 const DEFAULT_HABITS = [
@@ -217,6 +194,7 @@ function App() {
   
   const [ym, setYm] = useLocalStorage("ht_ym", [today.getFullYear(), today.getMonth()]);
   const [habits, setHabits] = useLocalStorage("ht_habits", []);
+  const [goals, setGoals] = useLocalStorage("ht_goals", []); // [{id,text,done}]
   const [checks, setChecks] = useLocalStorage("ht_checks", {});
 
   const monthKey = `${ym[0]}-${ym[1]}`;
@@ -229,8 +207,9 @@ function App() {
         setUser(currentUser);
       } else {
         setUser(null);
-        setHabits([]);
-        setChecks({});
+  setHabits([]);
+  setChecks({});
+  setGoals([]);
         setLoading(false);
       }
     });
@@ -243,7 +222,8 @@ function App() {
 
     setLoading(true);
     
-    const habitsDocRef = doc(db, `users/${user.uid}/meta/habits`);
+  const habitsDocRef = doc(db, `users/${user.uid}/meta/habits`);
+  const goalsDocRef = doc(db, `users/${user.uid}/meta/goals`);
     const unsubscribeHabits = onSnapshot(habitsDocRef, async (docSnap) => {
         if (docSnap.exists()) {
             setHabits(docSnap.data().habits || []);
@@ -255,6 +235,15 @@ function App() {
         }
         setLoading(false);
     });
+  const unsubscribeGoals = onSnapshot(goalsDocRef, async (docSnap) => {
+    if (docSnap.exists()) {
+      setGoals(docSnap.data().goals || []);
+    } else {
+      const localGoals = JSON.parse(localStorage.getItem("ht_goals") || "[]");
+      await setDoc(goalsDocRef, { goals: localGoals });
+      setGoals(localGoals);
+    }
+  });
 
     const monthDocRef = doc(db, `users/${user.uid}/months/${monthKey}`);
     const unsubscribeChecks = onSnapshot(monthDocRef, (docSnap) => {
@@ -266,7 +255,8 @@ function App() {
 
     return () => {
       unsubscribeHabits();
-      unsubscribeChecks();
+  unsubscribeChecks();
+  unsubscribeGoals();
     };
   }, [user, monthKey]);
 
@@ -299,6 +289,25 @@ function App() {
     };
     const updatedHabits = [...habits, newHabit];
     writeToFirestore(doc(db, `users/${user.uid}/meta/habits`), { habits: updatedHabits });
+  };
+
+  // GOALS CRUD
+  const addGoal = (text) => {
+    if (!text.trim()) return;
+    const newGoal = { id: crypto.randomUUID(), text: text.trim(), done: false };
+    const updated = [...goals, newGoal];
+    setGoals(updated);
+    if (user) writeToFirestore(doc(db, `users/${user.uid}/meta/goals`), { goals: updated });
+  };
+  const toggleGoal = (id) => {
+    const updated = goals.map(g => g.id === id ? { ...g, done: !g.done } : g);
+    setGoals(updated);
+    if (user) writeToFirestore(doc(db, `users/${user.uid}/meta/goals`), { goals: updated });
+  };
+  const removeGoal = (id) => {
+    const updated = goals.filter(g => g.id !== id);
+    setGoals(updated);
+    if (user) writeToFirestore(doc(db, `users/${user.uid}/meta/goals`), { goals: updated });
   };
 
   const removeHabit = (id) => {
@@ -390,42 +399,49 @@ function App() {
     new Set(perDayCompletion.map((o, idx) => (o.activeCount > 0 && o.doneCount === o.activeCount ? idx + 1 : null)).filter(Boolean)),
   [perDayCompletion]);
 
-  const allStreak = useMemo(() => computeAllDoneStreak(allDoneDays, totalDays), [allDoneDays, totalDays]);
+  const allStreak = useMemo(() => {
+    const today = new Date();
+    // ym is [year, month]
+    const isCurrentMonth = today.getFullYear() === ym[0] && today.getMonth() === ym[1];
+    const limitDay = isCurrentMonth ? today.getDate() : totalDays;
+    return computeAllDoneStreak(allDoneDays, totalDays, limitDay);
+  }, [allDoneDays, totalDays, ym]);
 
   // --- RENDER ---
   if (loading) {
-      return <div className="flex justify-center items-center min-h-screen text-lg">Loading...</div>
+      return <div className="flex justify-center items-center min-h-screen text-lg dark:text-white">Loading...</div>
   }
 
   return (
-    <div className="min-h-screen text-slate-800 flex flex-col">
+    <div className="min-h-screen text-slate-800 dark:text-slate-200 flex flex-col">
       <AppHeader user={user} onSignIn={handleSignIn} onSignOut={handleSignOut} />
       <div className="flex-1 w-full">
       {!user ? (
         <div className="text-center p-10 max-w-lg mx-auto">
-            <h2 className="text-3xl font-bold tracking-tight">Habit Tracker</h2>
-            <p className="mt-4 text-slate-600 leading-relaxed">Sign in with Google to start managing your habits and tracking your daily progress.</p>
+            <h2 className="text-3xl font-bold tracking-tight dark:text-white">Habit Tracker</h2>
+            <p className="mt-4 text-slate-600 dark:text-slate-400 leading-relaxed">Sign in with Google to start managing your habits and tracking your daily progress.</p>
         </div>
       ) : (
         <main className="mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8 space-y-8">
-          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
             <div className="md:w-64"><MemoizedMonthYearPicker value={ym} onChange={setYm} /></div>
             <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="card py-3 text-center">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Habits</div>
-                <div className="mt-1 text-2xl font-semibold">{habits.length}</div>
+              <div className="card py-3 text-center dark:bg-slate-900/40 dark:border-slate-800">
+                <div className="text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Habits</div>
+                <div className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{habits.length}</div>
               </div>
-              <div className="card py-3 text-center">
-                <div className="text-xs uppercase tracking-wide text-slate-500">All-done days</div>
-                <div className="mt-1 text-2xl font-semibold">{allDoneDays.size}</div>
+              <div className="card py-3 text-center dark:bg-slate-900/40 dark:border-slate-800">
+                <div className="text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">All-done days</div>
+                <div className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{allDoneDays.size}</div>
               </div>
-              <div className="card py-3 text-center">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Streak</div>
-                <div className="mt-1 text-2xl font-semibold">{allStreak.current}<span className="text-sm font-medium text-slate-400"> / {allStreak.longest}</span></div>
-              </div>
-              <div className="card py-3 text-center">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Days in month</div>
-                <div className="mt-1 text-2xl font-semibold">{totalDays}</div>
+              <div className="card py-3 text-center dark:bg-slate-900/40 dark:border-slate-800" title={`${allStreak.current} day streak`}>
+                <div className="text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Streak</div>
+                {(() => { const c = allStreak.current; let f = 0; if (c > 0) { if (c <= 10) f = 1; else if (c <= 20) f = 2; else f = 3; } return (
+                  <div className="mt-1 flex items-center justify-center gap-1">
+                    <span className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{c}</span>
+                    <span className="flex" aria-hidden="true">{Array.from({ length: f }).map((_,i)=><span key={i} className="text-xl leading-none">🔥</span>)}</span>
+                  </div>
+                ); })()}
               </div>
             </div>
           </div>
@@ -433,7 +449,7 @@ function App() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="space-y-6 order-last lg:order-first">
               <div className="card">
-                <h2 className="text-lg font-semibold mb-3">Habits</h2>
+                <h2 className="text-lg font-semibold mb-3 dark:text-slate-100">Habits</h2>
                 <ul className="space-y-2 mb-4">
                   {habits.map(h => (
                     <MemoizedHabitListItem
@@ -448,8 +464,22 @@ function App() {
                 <MemoizedAddHabit onAdd={addHabit} />
               </div>
               <div className="card">
-                <h2 className="text-lg font-semibold mb-3">Notes</h2>
-                <textarea className="w-full h-40 rounded-md border border-slate-300 p-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Note here..." />
+                <h2 className="text-lg font-semibold mb-3 dark:text-slate-100">Goals</h2>
+                <ul className="space-y-2 mb-4">
+                  {goals.length === 0 && (
+                    <li className="text-xs text-slate-500 dark:text-slate-400">No goals yet. Add one below.</li>
+                  )}
+                  {goals.map(g => (
+                    <li key={g.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+                      <button onClick={() => toggleGoal(g.id)} className={"flex-1 text-left text-sm truncate transition-colors " + (g.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200')}>{g.text}</button>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => toggleGoal(g.id)} className={"h-6 w-6 rounded-md border flex items-center justify-center text-xs font-medium transition-colors " + (g.done ? 'border-green-600 bg-green-600 text-white' : 'border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300')}>{g.done ? '✓' : ''}</button>
+                        <button onClick={() => removeGoal(g.id)} className="h-6 w-6 rounded-md border border-slate-300 dark:border-slate-600 text-[10px] text-red-500 hover:bg-red-50 dark:hover:bg-red-900/40">×</button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <GoalInput onAdd={addGoal} />
               </div>
             </div>
 
@@ -457,7 +487,7 @@ function App() {
               <div className="card">
                 <MemoizedMiniCalendar monthStart={monthStart} days={totalDays} allDoneDays={allDoneDays} />
               </div>
-              <div className="card p-0 overflow-hidden">
+              <div className="card p-0 overflow-hidden dark:bg-slate-800">
                 <HabitGrid
                   habits={habits}
                   monthChecks={monthChecks}
@@ -467,6 +497,7 @@ function App() {
                   onToggle={toggle}
                   perDayCompletion={perDayCompletion}
                   allDoneDays={allDoneDays}
+                  perHabitProgress={perHabitProgress}
                 />
               </div>
             </div>
@@ -480,3 +511,14 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
+// Goal input lightweight component (after render to keep file order simpler)
+function GoalInput({ onAdd }) {
+  const [val, setVal] = useState("");
+  return (
+    <form onSubmit={(e)=>{e.preventDefault(); onAdd(val); setVal("");}} className="flex items-center gap-2">
+      <input value={val} onChange={e=>setVal(e.target.value)} placeholder="Add a goal…" className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+      <button type="submit" disabled={!val.trim()} className="rounded-lg bg-primary-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-primary-700 disabled:opacity-40 transition-colors">Add</button>
+    </form>
+  );
+}

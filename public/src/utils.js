@@ -20,10 +20,13 @@ function isActiveOnDate(habit, date) {
   return true;
 }
 
-function computeAllDoneStreak(allDoneDays, totalDays) {
-  // longest streak scanning forward
+function computeAllDoneStreak(allDoneDays, totalDays, limitDay) {
+  // limitDay: only count days up to this (to ignore future days in current month)
+  const maxDay = typeof limitDay === 'number' ? Math.min(limitDay, totalDays) : totalDays;
+  if (maxDay <= 0) return { current: 0, longest: 0 };
+  // longest streak scanning forward up to maxDay
   let longest = 0, cur = 0;
-  for (let d = 1; d <= totalDays; d++) {
+  for (let d = 1; d <= maxDay; d++) {
     if (allDoneDays.has(d)) {
       cur++;
       if (cur > longest) longest = cur;
@@ -31,9 +34,9 @@ function computeAllDoneStreak(allDoneDays, totalDays) {
       cur = 0;
     }
   }
-  // current streak scanning backward from last day of viewed month
+  // current streak scanning backward starting at maxDay
   let current = 0;
-  for (let d = totalDays; d >= 1; d--) {
+  for (let d = maxDay; d >= 1; d--) {
     if (allDoneDays.has(d)) current++; else break;
   }
   return { current, longest };
