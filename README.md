@@ -1,4 +1,4 @@
-## ✨ Features
+## Features
 - Google Sign-In (per-user Firestore namespace `users/{uid}`)
 - Add / remove habits and configure schedule modes
 - 3 schedule modes:
@@ -11,7 +11,7 @@
 - Simple timer (Pomodoro style) & quick notes panel
 - Offline-first: habits & check marks cached in `localStorage`; auto-syncs after login / month switch
 
-## 🗂 Directory Structure
+## Directory Structure
 ```
 public/
   index.html          # Entry: loads React, Firebase SDK, Babel and scripts
@@ -30,7 +30,7 @@ firestore.indexes.json
 ```
 Everything runs via `<script type="text/babel">` and globals; no bundler yet.
 
-## � Getting Started
+## Getting Started
 
 To run this project, you'll need your own Firebase project.
 
@@ -43,7 +43,7 @@ To run this project, you'll need your own Firebase project.
     *   In this repository, copy the file `public/firebase-config.js.example` to a new file named `public/firebase-config.js`.
     *   Paste your `firebaseConfig` object into `public/firebase-config.js`. This file is ignored by Git, so your keys won't be exposed.
 
-## �🔧 Local Development
+## Local Development
 
 Once you have set up your `firebase-config.js`, you can run the project locally. Requires Firebase CLI (`firebase login`).
 
@@ -52,18 +52,18 @@ firebase emulators:start --only hosting,firestore
 ```
 Visit http://localhost:5000
 
-## 🚀 Deploy
+## Deploy
 Deploy rules & hosting:
 ```bash
 firebase deploy
 ```
 
-## 🔐 Firestore Rules (summary)
+## Firestore Rules (summary)
 - Only the owner (`request.auth.uid == userId`) can read/write.
 - Writable docs: `users/{uid}/meta/habits` and `users/{uid}/months/{ym}`.
 - Basic size caps (can be hardened later).
 
-## 🗃 Data Model
+## Data Model
 ```
 users/{uid}/meta/habits { habits: [ { id, name, schedule } ] }
 users/{uid}/months/{YYYY-M} { habitId: { dayNumber: true } }
@@ -75,15 +75,15 @@ users/{uid}/months/{YYYY-M} { habitId: { dayNumber: true } }
 { mode: 'quota', timesPerWeek: 3 }
 ```
 
-## ♻️ Sync & Offline
+## Sync & Offline
 - On login: fetch habits + current month doc; create with defaults if missing (using any cached local copy first).
 - On toggle: merge update only the changed habit/day inside `users/{uid}/months/{ym}`.
 - Local cache keys: `ht_ym`, `ht_habits`, `ht_checks`.
 
-## ⚠️ Considerations
+## Considerations
 - Merge writes keep bandwidth low; watch doc size if habits > ~200.
 - `quota` progress currently sums capped completions per week (weeks wholly within month view).
 
 
-## 📝 License
+## License
 Released under the MIT License. 
