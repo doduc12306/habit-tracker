@@ -1,44 +1,43 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Habit Tracker Dashboard</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#0b1118" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#10b981" media="(prefers-color-scheme: light)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="vendor/tailwindcdn.js"></script>
   <script>
+    // Improved palette (emerald + cyan accent) and surface tokens
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
           colors: {
-            primary: {
-              50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac',
-              400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d',
-              800: '#166534', 900: '#14532d', 950: '#052e16'
-            }
+            primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b', 950: '#022c22' },
+            accent: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e', 950: '#082f49' }
           }
         }
       }
     };
   </script>
-  <!-- Theme initialization & toggle helper -->
+  <!-- Theme initialization & toggle helper (keep) -->
   <script>
     (function(){
       try {
         const stored = localStorage.getItem('ht_theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = stored || (prefersDark ? 'dark' : 'light');
+        const theme = stored || 'dark';
         if(theme === 'dark') document.documentElement.classList.add('dark');
         window.toggleTheme = function(){
           const isDark = document.documentElement.classList.toggle('dark');
           localStorage.setItem('ht_theme', isDark ? 'dark' : 'light');
         };
-      } catch(e) { /* ignore */ }
+      } catch(e) {}
     })();
   </script>
   <script crossorigin src="vendor/react.production.min.js"></script>
@@ -66,30 +65,106 @@
 
   <style>
     html, body { height: 100%; font-family: 'Inter', sans-serif; }
-    :root {
-      --side-w: 240px;
-      --day-min: 38px;
-      --bar-max-h: 60px;
-      --row-h: 52px;
+    :root { --side-w: 240px; --day-min: 38px; --bar-max-h: 60px; --row-h: 52px; }
+    /* Enhanced card + buttons */
+    .card { background:#ffffff; border:1px solid #e2e8f0; border-radius:0.9rem; padding:1rem; box-shadow:0 2px 4px -2px rgba(0,0,0,0.06),0 4px 8px -2px rgba(0,0,0,0.04); transition:background-color .25s,border-color .25s,color .25s,box-shadow .25s,transform .25s; }
+    .card:hover { box-shadow:0 4px 14px -2px rgba(0,0,0,0.18),0 2px 6px -2px rgba(0,0,0,0.1); }
+    .dark .card { background:linear-gradient(145deg,#0f1e2d,#132637); border-color:#1e2d3d; box-shadow:0 2px 6px -2px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.03) inset; }
+    .dark .card:hover { background:linear-gradient(145deg,#132637,#183449); }
+    .btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.55rem 1rem; font-weight:500; font-size:.8rem; letter-spacing:.25px; border-radius:.75rem; color:#fff; background-image:linear-gradient(92deg,#059669,#0ea5e9); border:1px solid rgba(255,255,255,0.08); box-shadow:0 2px 4px -1px rgba(0,0,0,0.25),0 0 0 1px rgba(255,255,255,0.06) inset; cursor:pointer; transition:box-shadow .25s,transform .18s,filter .25s; }
+    .btn-primary:hover { box-shadow:0 4px 14px -2px rgba(0,0,0,0.35),0 0 0 1px rgba(255,255,255,0.08) inset; filter:brightness(1.05); }
+    .btn-primary:active { transform:translateY(2px); }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-soft { background:rgba(4,120,87,0.08); color:#065f46; border:1px solid rgba(4,120,87,0.18); padding:.45rem .8rem; border-radius:.65rem; font-size:.7rem; font-weight:500; letter-spacing:.3px; transition:background .25s,color .25s,border-color .25s; }
+    .btn-soft:hover { background:rgba(4,120,87,0.14); }
+    .dark .btn-soft { background:rgba(14,165,233,0.15); color:#7dd3fc; border-color:rgba(56,189,248,0.3); }
+    .dark .btn-soft:hover { background:rgba(14,165,233,0.22); }
+    .gradient-header { background:linear-gradient(120deg,#ffffffee,#f8fafcee 55%,#ecfdf5dd); }
+    .dark .gradient-header { background:linear-gradient(120deg,#0b1118dd,#0f1b28dd 60%,#022c22bb); }
+    /* Existing custom styles */
+    .soft-scroll { scroll-behavior:smooth; }
+    .habit-grid-wrapper { position:relative; overflow-x:auto; }
+    .fade-left::before { content:""; position:sticky; left:0; width:24px; height:100%; display:block; pointer-events:none; z-index:10; background:linear-gradient(to right,#f1f5f9,rgba(241,245,249,0)); }
+    .dark .fade-left::before { background:linear-gradient(to right,#0f172a,rgba(15,23,42,0)); }
+    body.dragging-x { cursor: grabbing !important; }
+    [data-drag-scroll]::-webkit-scrollbar { height: 10px; }
+    [data-drag-scroll]::-webkit-scrollbar-track { background: transparent; }
+    [data-drag-scroll]::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.35); border-radius: 8px; }
+    [data-drag-scroll]:hover::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.55); }
+    /* Skeleton shimmer */
+    .skeleton { position:relative; overflow:hidden; background:linear-gradient(90deg,rgba(100,116,139,0.15),rgba(100,116,139,0.08)); border-radius:0.5rem; }
+    .dark .skeleton { background:linear-gradient(90deg,rgba(51,65,85,0.35),rgba(51,65,85,0.25)); }
+    .skeleton::after { content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent); animation:shimmer 1.4s infinite; }
+    .dark .skeleton::after { background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent); }
+    @keyframes shimmer { 100% { transform:translateX(100%); } }
+
+    /* Responsive adjustments for mobile */
+    @media (max-width: 639px) {
+      :root {
+        --day-min: 32px; /* smaller day columns on mobile */
+        --row-h: 48px;   /* slightly smaller rows */
+      }
+      .card {
+        padding: 0.8rem; /* smaller card padding */
+      }
+      .btn-primary {
+        padding: .5rem .9rem;
+        font-size: .75rem;
+      }
+      .btn-soft {
+        padding: .4rem .7rem;
+        font-size: .65rem;
+      }
     }
-  .card { background:#fff; border:1px solid #e2e8f0; border-radius:0.75rem; padding:1rem; box-shadow:0 1px 2px rgba(0,0,0,0.04); transition:background-color .25s, border-color .25s, color .25s; }
-  .dark .card { background: #0f172a; border-color: #334155; }
-  @media (min-width:640px){ .card{padding:1.25rem;} }
-  .soft-scroll { scroll-behavior:smooth; }
-  .habit-grid-wrapper { position:relative; overflow-x:auto; }
-  .fade-left::before { content:""; position:sticky; left:0; width:24px; height:100%; display:block; pointer-events:none; z-index:10; background:linear-gradient(to right, #f1f5f9, rgba(241,245,249,0)); }
-    .fade-left::before {
-      content: ""; position: sticky; left: 0; width: 24px; height: 100%; display: block;
-      pointer-events: none; z-index: 10;
-      background: linear-gradient(to right, #f1f5f9, rgba(241, 245, 249, 0));
+
+    /* Enhanced animations and micro-interactions */
+    .card {
+      transition: all 0.2s ease;
     }
-    .dark .fade-left::before {
-        background: linear-gradient(to right, #0f172a, rgba(15, 23, 42, 0));
+    .card:hover {
+      transform: translateY(-2px);
+    }
+    .btn-primary, .btn-soft {
+      transition: all 0.2s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+    }
+    .btn-soft:hover {
+      transform: translateY(-1px);
+    }
+    
+    /* Improved focus states for accessibility */
+    .btn-primary:focus, .btn-soft:focus, input:focus {
+      outline: 2px solid #10b981;
+      outline-offset: 2px;
+    }
+    
+    /* Smooth transitions for theme switching */
+    * {
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     }
   </style>
 </head>
-<body class="bg-slate-100 dark:bg-gray-950 text-gray-800 dark:text-gray-200">
+<body class="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#0b1118] dark:via-[#0d161f] dark:to-[#101c28] text-slate-800 dark:text-slate-200 selection:bg-emerald-500/30 selection:text-emerald-100">
 <div id="root"></div>
+
+<!-- Drag scroll helper -->
+<script>
+  (function(){
+    let isDown=false,startX,scrollLeft,el;const threshold=3;let moved=false;
+    function md(e){const t=e.target.closest('[data-drag-scroll]');if(!t)return;isDown=true;el=t;startX=e.pageX-t.offsetLeft;scrollLeft=t.scrollLeft;moved=false;document.body.classList.add('dragging-x');}
+    function mm(e){if(!isDown||!el)return;const x=e.pageX-el.offsetLeft;const walk=(x-startX);if(Math.abs(walk)>threshold)moved=true;el.scrollLeft=scrollLeft-walk;}
+    function mu(){if(isDown){isDown=false;document.body.classList.remove('dragging-x');if(moved)window.getSelection&&window.getSelection().removeAllRanges();}}
+    function leave(){mu();}
+    window.addEventListener('mousedown',md,{passive:true});
+    window.addEventListener('mousemove',mm,{passive:true});
+    window.addEventListener('mouseup',mu,{passive:true});
+    window.addEventListener('mouseleave',leave,{passive:true});
+    // horizontal with wheel (shift not required)
+    window.addEventListener('wheel',function(e){const t=e.target.closest('[data-drag-scroll]');if(!t||Math.abs(e.deltaX)>Math.abs(e.deltaY))return; if(e.deltaY!==0){t.scrollLeft+=e.deltaY; e.preventDefault();}}, {passive:false});
+  })();
+</script>
 
 <!-- Enable ES module imports inside Babel-transpiled code by adding data-type="module" -->
 <!-- Core utility & component scripts (no modules, global scope) -->
@@ -98,6 +173,7 @@
 <script type="text/babel" data-presets="react" src="src/components/HabitScheduleButton.js"></script>
 <script type="text/babel" data-presets="react" src="src/components/MiniCalendar.js"></script>
 <script type="text/babel" data-presets="react" src="src/components/MonthYearPicker.js"></script>
+<script type="text/babel" data-presets="react" src="src/components/ContributionCalendar.js"></script>
 <script type="text/babel" data-presets="react" src="src/App.js"></script>
 </body>
 </html>

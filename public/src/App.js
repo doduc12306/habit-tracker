@@ -16,17 +16,48 @@ const MemoizedMiniCalendar = memo(MiniCalendar);
 const MemoizedHabitScheduleButton = memo(HabitScheduleButton);
 const MemoizedMonthYearPicker = memo(MonthYearPicker);
 const MemoizedAddHabit = memo(AddHabit);
+const MemoizedContributionCalendar = typeof ContributionCalendar !== 'undefined' ? memo(ContributionCalendar) : null;
 
 const MemoizedHabitListItem = memo(({ habit, progress, onRemove, onUpdateSchedule }) => (
-    <li className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
-        <div>
-            <div className="font-medium text-slate-900 dark:text-slate-100">{habit.name}</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">{progress.pct}% complete</div>
+    <li className="group flex items-center justify-between gap-1 sm:gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 p-2 sm:p-3 backdrop-blur-sm hover:border-emerald-300 dark:hover:border-emerald-600 transition-all">
+        <div className="flex-1 overflow-hidden">
+            <div className="font-medium text-slate-900 dark:text-slate-100 tracking-tight truncate" title={habit.name}>{habit.name}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                <span>{progress.pct}% complete</span>
+                <div className="flex-1 h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300" style={{ width: `${progress.pct}%` }} />
+                </div>
+            </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <MemoizedHabitScheduleButton habit={habit} onChange={(s) => onUpdateSchedule(habit.id, s)} />
-            <button onClick={() => onRemove(habit.id)} className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 py-1 text-xs text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 transition-colors">Remove</button>
+            <button onClick={() => onRemove(habit.id)} className="btn-soft !px-2 !py-1 !border-red-300/70 dark:!border-red-500/40 !text-red-600 dark:!text-red-300 hover:!bg-red-50 dark:hover:!bg-red-900/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 sm:hidden"><path fillRule="evenodd" d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" clipRule="evenodd" /></svg>
+                <span className="hidden sm:inline">Remove</span>
+            </button>
         </div>
+    </li>
+));
+
+const MemoizedGoalItem = memo(({ goal, onRemove, onToggle }) => (
+    <li className="group flex items-center gap-3 text-sm p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+        <input 
+            type="checkbox" 
+            checked={goal.done} 
+            onChange={() => onToggle(goal.id)} 
+            className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 bg-transparent transition-all" 
+        />
+        <span className={`flex-1 transition-all ${goal.done ? 'line-through text-slate-500' : 'text-slate-800 dark:text-slate-200'}`}>
+            {goal.text}
+        </span>
+        <button 
+            onClick={() => onRemove(goal.id)} 
+            className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1 rounded"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" clipRule="evenodd" />
+            </svg>
+        </button>
     </li>
 ));
 
@@ -40,9 +71,9 @@ const MemoizedHabitRow = memo(({ habit, monthChecks, daysList, ym, onToggle }) =
                 const active = isActiveOnDate(habit, date);
                 const checked = !!row[d];
                 const base = "h-9 w-9 rounded-lg border text-sm transition-all shadow-sm outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center justify-center";
-                const activeUnchecked = "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-green-50 dark:hover:bg-green-900/50 hover:border-green-400 dark:hover:border-green-700";
-                const activeChecked = "border-green-600 bg-green-600 text-white font-bold";
-                const inactive = "border-dashed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 cursor-not-allowed";
+                const activeUnchecked = "border-slate-300/70 dark:border-slate-600/60 bg-white/70 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:border-emerald-400 dark:hover:border-emerald-500";
+                const activeChecked = "border-emerald-600/90 bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold shadow";
+                const inactive = "border-dashed border-slate-200/60 dark:border-slate-700/50 bg-slate-100/60 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 cursor-not-allowed";
                 return (
                     <button key={d} onClick={() => active && onToggle(habit.id, d)} className={[base, active ? (checked ? activeChecked : activeUnchecked) : inactive].join(" ")} title={`Day ${d}${active ? "" : " (inactive)"}`} disabled={!active}>{checked ? "✓" : ""}</button>
                 );
@@ -85,7 +116,7 @@ const MemoizedDailyCompletionBar = memo(({ perDayCompletion, daysList, dayGridTe
             const o = perDayCompletion[i - 1];
             const h = o.activeCount ? (o.doneCount / o.activeCount) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-max-h')) : 0;
             return (
-              <div key={i} className="w-full rounded-t bg-green-500" title={`Day ${i}: ${o.doneCount}/${o.activeCount}`} style={{ height: `${h}px`, transition: 'height 300ms ease' }} />
+              <div key={i} className="w-full rounded-t bg-gradient-to-t from-emerald-500/85 to-teal-400/80" title={`Day ${i}: ${o.doneCount}/${o.activeCount}`} style={{ height: `${h}px`, transition: 'height 300ms ease' }} />
             );
           })}
         </div>
@@ -94,7 +125,7 @@ const MemoizedDailyCompletionBar = memo(({ perDayCompletion, daysList, dayGridTe
     ));
 const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, onToggle, perDayCompletion, allDoneDays, perHabitProgress }) => (
   <div className="w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/30">
-    <div className="grid grid-cols-[var(--side-w)_minmax(0,1fr)] sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-900/70 backdrop-blur">
+    <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-900/70 backdrop-blur">
       <div className="flex items-center px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700">Habit</div>
       <div className="relative">
         <div className="fade-left absolute inset-y-0 left-0"></div>
@@ -103,12 +134,12 @@ const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, on
         </div>
       </div>
     </div>
-    <div className="grid grid-cols-[var(--side-w)_minmax(0,1fr)] max-h-[60vh] overflow-y-auto">
+    <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] max-h-[60vh] overflow-y-auto">
       <div className="border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30">
         {habits.map((h, idx) => {
           const prog = perHabitProgress.find(p => p.id === h.id)?.pct ?? 0;
           return (
-            <div key={h.id} className={"group flex gap-3 px-3 text-sm border-b border-slate-200 dark:border-slate-800 transition-colors " + (idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/70') + ' hover:bg-green-50/60 dark:hover:bg-green-900/20'} style={{ width: 'var(--side-w)', minWidth: 'var(--side-w)', height: 'var(--row-h)' }}>
+            <div key={h.id} className={"group flex gap-3 px-3 text-sm border-b border-slate-200 dark:border-slate-800 transition-colors w-full " + (idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/70') + ' hover:bg-green-50/60 dark:hover:bg-green-900/20'} style={{ minHeight: 'var(--row-h)' }}>
               <div className="flex flex-col justify-center w-full overflow-hidden">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-slate-500 dark:bg-slate-400 flex-shrink-0" />
@@ -122,9 +153,9 @@ const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, on
             </div>
           );
         })}
-        <div className="px-3 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-xs text-slate-600 dark:text-slate-400" style={{ width: 'var(--side-w)', minWidth: 'var(--side-w)' }}>Daily Completion</div>
+        <div className="px-3 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-xs text-slate-600 dark:text-slate-400 w-full">Daily Completion</div>
       </div>
-      <div className="relative overflow-x-auto bg-white dark:bg-slate-900/30">
+      <div className="relative overflow-x-auto bg-white dark:bg-slate-900/30 drag-scroll-x cursor-grab" data-drag-scroll>
         <div className="min-w-full">
           {habits.map((h, idx) => (
             <div key={h.id} className={(idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/70') + ' group hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-colors'}>
@@ -144,22 +175,39 @@ const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, on
   </div>
 ));
 
+
 // Re-introduced AppHeader (was removed during layout refactor)
-const AppHeader = memo(({ user, onSignIn, onSignOut }) => (
-  <header className="bg-white/80 dark:bg-gray-950/70 backdrop-blur-sm shadow-sm sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800">
+const AppHeader = memo(({ user, onSignOut }) => (
+  <header className="gradient-header backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-200/70 dark:border-slate-800/60">
     <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
       <div className="flex h-16 items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Habit Tracker</h1>
-        <div className="flex items-center gap-3">
-          <button onClick={() => window.toggleTheme && window.toggleTheme()} aria-label="Toggle theme" className="rounded-md border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Theme</button>
-          {user ? (
-            <>
-              <span className="hidden sm:inline text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[160px]">{user.displayName}</span>
-              <button onClick={onSignOut} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Sign Out</button>
-            </>
-          ) : (
-            <button onClick={onSignIn} className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 transition-colors">Sign in</button>
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">
+            Habit Tracker
+          </h1>
+          {user && (
+            <div className="hidden sm:flex items-center gap-2 text-sm">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-slate-600 dark:text-slate-400">
+                Welcome back, {user.displayName?.split(' ')[0] || 'User'}
+              </span>
+            </div>
           )}
+        </div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => window.toggleTheme && window.toggleTheme()} 
+            aria-label="Toggle theme" 
+            className="btn-soft flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
+              <path d="M8 1a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 1ZM10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM12.95 4.11a.75.75 0 1 0-1.06-1.06l-1.062 1.06a.75.75 0 0 0 1.061 1.062l1.06-1.061ZM15 8a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 15 8ZM11.89 12.95a.75.75 0 0 0 1.06-1.06l-1.06-1.062a.75.75 0 0 0-1.062 1.061l1.061 1.06ZM8 12a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 12ZM5.172 11.89a.75.75 0 0 0-1.061-1.062L3.05 11.89a.75.75 0 1 0 1.06 1.06l1.06-1.06ZM4 8a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 4 8ZM4.11 5.172A.75.75 0 0 0 5.173 4.11L4.11 3.05a.75.75 0 1 0-1.06 1.06l1.06 1.061Z" />
+            </svg>
+            <span className="hidden sm:inline">Theme</span>
+          </button>
+          {user ? (
+            <button onClick={onSignOut} className="btn-soft">Sign Out</button>
+          ) : null}
         </div>
       </div>
     </div>
@@ -193,6 +241,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   
   const [ym, setYm] = useLocalStorage("ht_ym", [today.getFullYear(), today.getMonth()]);
+  const [selectedYear, setSelectedYear] = useLocalStorage("ht_year", today.getFullYear());
+
   const [habits, setHabits] = useLocalStorage("ht_habits", []);
   const [goals, setGoals] = useLocalStorage("ht_goals", []); // [{id,text,done}]
   const [checks, setChecks] = useLocalStorage("ht_checks", {});
@@ -409,53 +459,53 @@ function App() {
 
   // --- RENDER ---
   if (loading) {
-      return <div className="flex justify-center items-center min-h-screen text-lg dark:text-white">Loading...</div>
+    return (
+      <div className="min-h-screen p-6 space-y-6">
+        <div className="max-w-screen-2xl mx-auto space-y-6">
+          <CardSkeleton lines={2} />
+          <div className="grid md:grid-cols-3 gap-6">
+            <CardSkeleton lines={6} />
+            <div className="md:col-span-2 space-y-6">
+              <GridSkeleton />
+              <CardSkeleton lines={8} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen text-slate-800 dark:text-slate-200 flex flex-col">
-      <AppHeader user={user} onSignIn={handleSignIn} onSignOut={handleSignOut} />
-      <div className="flex-1 w-full">
+    <div className="min-h-screen font-sans">
       {!user ? (
-        <div className="text-center p-10 max-w-lg mx-auto">
-            <h2 className="text-3xl font-bold tracking-tight dark:text-white">Habit Tracker</h2>
-            <p className="mt-4 text-slate-600 dark:text-slate-400 leading-relaxed">Sign in with Google to start managing your habits and tracking your daily progress.</p>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center card max-w-sm mx-auto">
+            <h1 className="text-2xl font-bold mb-2 text-slate-800 dark:text-slate-100">Welcome to Habit Tracker</h1>
+            <p className="text-slate-600 dark:text-slate-300 mb-6">Please sign in to continue.</p>
+            <button onClick={handleSignIn} className="btn-primary w-full">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+              <span>Sign in with Google</span>
+            </button>
+          </div>
         </div>
       ) : (
-        <main className="mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8 space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
-            <div className="md:w-64"><MemoizedMonthYearPicker value={ym} onChange={setYm} /></div>
-            <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="card py-3 text-center dark:bg-slate-900/40 dark:border-slate-800">
-                <div className="text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Habits</div>
-                <div className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{habits.length}</div>
-              </div>
-              <div className="card py-3 text-center dark:bg-slate-900/40 dark:border-slate-800">
-                <div className="text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">All-done days</div>
-                <div className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{allDoneDays.size}</div>
-              </div>
-              <div className="card py-3 text-center dark:bg-slate-900/40 dark:border-slate-800" title={`${allStreak.current} day streak`}>
-                <div className="text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Streak</div>
-                {(() => { const c = allStreak.current; let f = 0; if (c > 0) { if (c <= 10) f = 1; else if (c <= 20) f = 2; else f = 3; } return (
-                  <div className="mt-1 flex items-center justify-center gap-1">
-                    <span className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{c}</span>
-                    <span className="flex" aria-hidden="true">{Array.from({ length: f }).map((_,i)=><span key={i} className="text-xl leading-none">🔥</span>)}</span>
-                  </div>
-                ); })()}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            <div className="space-y-6 order-last lg:order-first">
+        <main className="p-4 sm:p-6 lg:p-8 max-w-screen-2xl mx-auto">
+          <AppHeader user={user} onSignOut={handleSignOut} />
+          <StatsBar ym={ym} setYm={setYm} habitsCount={habits.length} allDoneCount={allDoneDays.size} allStreak={allStreak} />
+          
+          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[340px_1fr] gap-6 lg:gap-8 mt-6">
+            <div className="space-y-6 order-last md:order-first">
               <div className="card">
-                <h2 className="text-lg font-semibold mb-3 dark:text-slate-100">Habits</h2>
+                <MemoizedMiniCalendar monthStart={monthStart} days={totalDays} allDoneDays={allDoneDays} />
+              </div>
+              <div className="card">
+                <h2 className="text-lg font-semibold mb-3 dark:text-slate-100 flex items-center justify-between">Habits <span className="text-sm font-medium tabular-nums text-slate-500 dark:text-slate-400">{habits.length}</span></h2>
                 <ul className="space-y-2 mb-4">
                   {habits.map(h => (
                     <MemoizedHabitListItem
                       key={h.id}
                       habit={h}
-                      progress={perHabitProgress.find(x => x.id === h.id) || { pct:0 }}
+                      progress={perHabitProgress.find(p => p.id === h.id) || { pct: 0 }}
                       onRemove={removeHabit}
                       onUpdateSchedule={updateHabitSchedule}
                     />
@@ -463,30 +513,9 @@ function App() {
                 </ul>
                 <MemoizedAddHabit onAdd={addHabit} />
               </div>
-              <div className="card">
-                <h2 className="text-lg font-semibold mb-3 dark:text-slate-100">Goals</h2>
-                <ul className="space-y-2 mb-4">
-                  {goals.length === 0 && (
-                    <li className="text-xs text-slate-500 dark:text-slate-400">No goals yet. Add one below.</li>
-                  )}
-                  {goals.map(g => (
-                    <li key={g.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
-                      <button onClick={() => toggleGoal(g.id)} className={"flex-1 text-left text-sm truncate transition-colors " + (g.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200')}>{g.text}</button>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => toggleGoal(g.id)} className={"h-6 w-6 rounded-md border flex items-center justify-center text-xs font-medium transition-colors " + (g.done ? 'border-green-600 bg-green-600 text-white' : 'border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300')}>{g.done ? '✓' : ''}</button>
-                        <button onClick={() => removeGoal(g.id)} className="h-6 w-6 rounded-md border border-slate-300 dark:border-slate-600 text-[10px] text-red-500 hover:bg-red-50 dark:hover:bg-red-900/40">×</button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <GoalInput onAdd={addGoal} />
-              </div>
             </div>
 
-            <div className="lg:col-span-2 space-y-6">
-              <div className="card">
-                <MemoizedMiniCalendar monthStart={monthStart} days={totalDays} allDoneDays={allDoneDays} />
-              </div>
+            <div className="space-y-6 overflow-hidden">
               <div className="card p-0 overflow-hidden dark:bg-slate-800">
                 <HabitGrid
                   habits={habits}
@@ -500,11 +529,24 @@ function App() {
                   perHabitProgress={perHabitProgress}
                 />
               </div>
+              <div className="card">
+                <h2 className="text-lg font-semibold mb-3 dark:text-slate-100 flex items-center justify-between">Goals <span className="text-sm font-medium tabular-nums text-slate-500 dark:text-slate-400">{goals.length}</span></h2>
+                <ul className="space-y-2 mb-4">
+                  {goals.map(g => (
+                    <MemoizedGoalItem key={g.id} goal={g} onRemove={removeGoal} onToggle={toggleGoal} />
+                  ))}
+                </ul>
+                <GoalInput onAdd={addGoal} />
+              </div>
+              <div className="card">
+                <div className="w-fit mx-auto">
+                  {MemoizedContributionCalendar ? <MemoizedContributionCalendar habits={habits} checks={checks} year={selectedYear} onYearChange={setSelectedYear} /> : <CardSkeleton lines={4} />}
+                </div>
+              </div>
             </div>
           </div>
         </main>
       )}
-      </div>
     </div>
   );
 }
@@ -515,10 +557,63 @@ root.render(<App />);
 // Goal input lightweight component (after render to keep file order simpler)
 function GoalInput({ onAdd }) {
   const [val, setVal] = useState("");
+  const [focused, setFocused] = useState(false);
+  
   return (
     <form onSubmit={(e)=>{e.preventDefault(); onAdd(val); setVal("");}} className="flex items-center gap-2">
-      <input value={val} onChange={e=>setVal(e.target.value)} placeholder="Add a goal…" className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-      <button type="submit" disabled={!val.trim()} className="rounded-lg bg-primary-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-primary-700 disabled:opacity-40 transition-colors">Add</button>
+      <div className="relative flex-1">
+        <input 
+          value={val} 
+          onChange={e=>setVal(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="Add a goal…" 
+          className={`w-full rounded-lg border border-slate-300/70 dark:border-slate-600/60 bg-white/80 dark:bg-slate-700/70 backdrop-blur px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${focused ? 'border-primary-400' : ''}`} 
+        />
+        {val && (
+          <button 
+            type="button" 
+            onClick={() => setVal("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14ZM5.28 5.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 5.22Z" clipRule="evenodd" />
+            </svg>
+          </button>
+        )}
+      </div>
+      <button 
+        type="submit" 
+        disabled={!val.trim()} 
+        className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 sm:hidden">
+          <path fillRule="evenodd" d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14Zm.75-10.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0Z" clipRule="evenodd" />
+        </svg>
+        <span className="hidden sm:inline">Add</span>
+      </button>
     </form>
+  );
+}
+
+// Skeleton components
+function SkeletonBar({ className="" }) { return <div className={"skeleton " + className} /> }
+function CardSkeleton({ lines=3 }) {
+  return (
+    <div className="card">
+      <div className="space-y-3">
+        {Array.from({length:lines}).map((_,i)=><SkeletonBar key={i} className="h-4 w-full" />)}
+      </div>
+    </div>
+  );
+}
+function GridSkeleton() {
+  return (
+    <div className="card p-4 space-y-4">
+      <SkeletonBar className="h-5 w-40" />
+      <div className="grid grid-cols-6 gap-2">
+        {Array.from({length:24}).map((_,i)=><SkeletonBar key={i} className="h-9" />)}
+      </div>
+    </div>
   );
 }

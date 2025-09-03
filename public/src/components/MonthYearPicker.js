@@ -5,10 +5,10 @@ function MonthYearPicker({ value, onChange }) {
   const [y, m] = value;
   return (
     <div className="grid grid-cols-2 gap-2">
-      <select value={m} onChange={(e) => onChange([y, Number(e.target.value)])} className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <select value={m} onChange={(e) => onChange([y, Number(e.target.value)])} className="w-full rounded-lg border border-slate-300/70 dark:border-slate-600/60 bg-white/85 dark:bg-slate-700/70 backdrop-blur px-3 py-2 text-sm text-slate-800 dark:text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
         {MONTHS_FULL.map((label, idx) => <option key={label} value={idx}>{label}</option>)}
       </select>
-      <select value={y} onChange={(e) => onChange([Number(e.target.value), m])} className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <select value={y} onChange={(e) => onChange([Number(e.target.value), m])} className="w-full rounded-lg border border-slate-300/70 dark:border-slate-600/60 bg-white/85 dark:bg-slate-700/70 backdrop-blur px-3 py-2 text-sm text-slate-800 dark:text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
         {years.map((yy) => <option key={yy} value={yy}>{yy}</option>)}
       </select>
     </div>
