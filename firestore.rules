@@ -10,6 +10,12 @@ service cloud.firestore {
       allow write: if isOwner(userId) && validateHabitsMeta(request.resource.data);
     }
 
+    // GOALS META: users/{uid}/meta/goals (missing before -> caused permission errors)
+    match /users/{userId}/meta/goals {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && validateGoalsMeta(request.resource.data);
+    }
+
     // MONTH DOCS: users/{uid}/months/{ym}
     match /users/{userId}/months/{ym} {
       allow read: if isOwner(userId);
@@ -26,6 +32,12 @@ service cloud.firestore {
       return data.keys().hasOnly(['habits']) &&
              data.habits is list &&
              data.habits.size() <= 200; // simple size guard
+    }
+
+    function validateGoalsMeta(data) {
+      return data.keys().hasOnly(['goals']) &&
+             data.goals is list &&
+             data.goals.size() <= 200; // similar guard
     }
 
     function validateMonthDoc(data) {

@@ -9,6 +9,7 @@ const useState = React.useState;
 const useEffect = React.useEffect;
 const useMemo = React.useMemo;
 const useCallback = React.useCallback;
+const useRef = React.useRef;
 const memo = React.memo;
 
 // component references from global scope
@@ -61,41 +62,74 @@ const MemoizedGoalItem = memo(({ goal, onRemove, onToggle }) => (
     </li>
 ));
 
-const MemoizedHabitRow = memo(({ habit, monthChecks, daysList, ym, onToggle }) => {
-    const row = monthChecks[habit.id] || {};
-    const dayGridTemplate = `repeat(${daysList.length}, minmax(var(--day-min),1fr))`;
-  // Removed future-day disabling (allow ticking any active day for flexibility)
-    return (
-      <div className="grid items-center justify-items-center gap-2 px-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style={{ gridTemplateColumns: dayGridTemplate, minHeight: 'var(--row-h)' }}>
-        {daysList.map(d => {
-          const date = new Date(ym[0], ym[1], d);
-          const active = isActiveOnDate(habit, date);
-          const checked = !!row[d];
-          const base = "h-9 w-9 rounded-lg border text-sm transition-all shadow-sm outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center justify-center";
-          const activeUnchecked = "border-slate-300/70 dark:border-slate-600/60 bg-white/70 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:border-emerald-400 dark:hover:border-emerald-500";
-          const activeChecked = "border-emerald-600/90 bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold shadow";
-            const inactive = "border-dashed border-slate-200/60 dark:border-slate-700/50 bg-slate-100/60 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 cursor-not-allowed";
-          const cls = active ? (checked ? activeChecked : activeUnchecked) : inactive;
-          return (
-            <button
-              key={d}
-              onClick={() => active && onToggle(habit.id, d)}
-              className={[base, cls].join(' ')}
-              title={`Day ${d}${active ? '' : ' (inactive)'}`}
-              disabled={!active}
-            >{checked ? '✓' : ''}</button>
-          );
-        })}
-      </div>
-    );
+const MemoizedHabitRow = memo(({ habit, monthChecks, daysList, ym, onToggle, rowIndex, rowCount }) => {
+  const row = monthChecks[habit.id] || {};
+  const dayGridTemplate = `repeat(${daysList.length}, minmax(var(--day-min),1fr))`;
+
+  function handleArrowNav(e) {
+    const key = e.key;
+    if (!['ArrowRight','ArrowLeft','ArrowUp','ArrowDown','Home','End'].includes(key)) return;
+    const currentBtn = e.currentTarget;
+    const row = parseInt(currentBtn.getAttribute('data-row'), 10);
+    const day = parseInt(currentBtn.getAttribute('data-day'), 10);
+    let targetRow = row;
+    let targetDay = day;
+    const maxDay = daysList.length;
+    switch (key) {
+      case 'ArrowRight': targetDay = Math.min(maxDay, day + 1); break;
+      case 'ArrowLeft': targetDay = Math.max(1, day - 1); break;
+      case 'ArrowDown': targetRow = Math.min(rowCount - 1, row + 1); break;
+      case 'ArrowUp': targetRow = Math.max(0, row - 1); break;
+      case 'Home': targetDay = 1; break;
+      case 'End': targetDay = maxDay; break;
+      default: break;
+    }
+    const next = document.querySelector(`button[data-row="${targetRow}"][data-day="${targetDay}"]`);
+    if (next && next !== currentBtn) {
+      e.preventDefault();
+      next.focus();
+    }
+  }
+
+  return (
+    <div className="grid items-center justify-items-center gap-2 px-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style={{ gridTemplateColumns: dayGridTemplate, minHeight: 'var(--row-h)' }}>
+      {daysList.map(d => {
+        const date = new Date(ym[0], ym[1], d);
+        const active = isActiveOnDate(habit, date);
+        const checked = !!row[d];
+        const base = "h-9 w-9 rounded-lg border text-sm transition-all shadow-sm outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center justify-center";
+        const activeUnchecked = "border-slate-300/70 dark:border-slate-600/60 bg-white/70 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:border-emerald-400 dark:hover:border-emerald-500";
+        const activeChecked = "border-emerald-600/90 bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold shadow";
+        const inactive = "border-dashed border-slate-200/60 dark:border-slate-700/50 bg-slate-100/60 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 cursor-not-allowed";
+        const cls = active ? (checked ? activeChecked : activeUnchecked) : inactive;
+        return (
+          <button
+            key={d}
+            data-row={rowIndex}
+            data-day={d}
+            onKeyDown={handleArrowNav}
+            onClick={() => active && onToggle(habit.id, d)}
+            className={[base, cls].join(' ')}
+            title={`Day ${d}${active ? '' : ' (inactive)'}`}
+            disabled={!active}
+          >{checked ? '✓' : ''}</button>
+        );
+      })}
+    </div>
+  );
 });
 
     // Sticky stats + month picker bar
-    const StatsBar = memo(({ ym, setYm, habitsCount, allDoneCount, allStreak }) => {
+    const StatsBar = memo(({ ym, setYm, habitsCount, allDoneCount, allStreak, onJumpToday, isCurrentMonth }) => {
       return (
         <div className="sticky top-[4rem] z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-3 space-y-3">
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
-            <div className="w-full md:w-60"><MemoizedMonthYearPicker value={ym} onChange={setYm} /></div>
+            <div className="w-full md:w-60 flex items-center gap-2">
+              <MemoizedMonthYearPicker value={ym} onChange={setYm} />
+              {isCurrentMonth && (
+                <button onClick={onJumpToday} className="btn-soft !py-1 !px-2 text-xs" aria-label="Jump to today">Today</button>
+              )}
+            </div>
             <div className="flex-1 grid grid-cols-3 sm:grid-cols-6 md:grid-cols-3 lg:grid-cols-6 gap-2">
               <div className="card py-2 px-3 shadow-sm dark:bg-slate-800 dark:border-slate-700 flex flex-col items-center justify-center">
                 <div className="text-[10px] sm:text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Habits</div>
@@ -164,7 +198,7 @@ const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, on
           <div className="sticky top-0 z-10 bg-white/85 dark:bg-slate-900/75 backdrop-blur px-3 flex items-center" style={{minHeight:'var(--row-h)'}}>
             <div className="fade-left absolute inset-y-0 left-0 pointer-events-none"></div>
             <div className="grid items-center gap-2 text-center text-[11px] font-medium text-slate-500 dark:text-slate-400 justify-items-center" style={{ gridTemplateColumns: dayGridTemplate }}>
-              {daysList.map(d => <div key={d} className="rounded-md w-full select-none">{d}</div>)}
+              {daysList.map(d => <div key={d} data-day={d} className="rounded-md w-full select-none">{d}</div>)}
             </div>
           </div>
           {habits.map((h, idx) => (
@@ -175,6 +209,8 @@ const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, on
                 daysList={daysList}
                 ym={ym}
                 onToggle={onToggle}
+                rowIndex={idx}
+                rowCount={habits.length}
               />
             </div>
           ))}
@@ -249,6 +285,8 @@ function App() {
   const today = new Date();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const heatmapRef = useRef(null);
+  const [heatmapVisible, setHeatmapVisible] = useState(false);
   
   const [ym, setYm] = useLocalStorage("ht_ym", [today.getFullYear(), today.getMonth()]);
   
@@ -469,6 +507,48 @@ function App() {
     return computeAllDoneStreak(allDoneDays, totalDays, limitDay);
   }, [allDoneDays, totalDays, ym]);
 
+  const isCurrentMonth = today.getFullYear() === ym[0] && today.getMonth() === ym[1];
+
+  const scrollToToday = useCallback(() => {
+    if (!isCurrentMonth) return;
+    const scroller = document.querySelector('.drag-scroll-x');
+    if (!scroller) return;
+    const cell = scroller.querySelector(`.sticky .grid [data-day="${today.getDate()}"]`);
+    if (cell) {
+      const left = cell.offsetLeft - 16;
+      scroller.scrollTo({ left: left < 0 ? 0 : left, behavior: 'smooth' });
+      // Focus first active button of today for first habit if exists
+      const btn = scroller.querySelector(`button[data-row="0"][data-day="${today.getDate()}"]`);
+      if (btn) btn.focus();
+    }
+  }, [isCurrentMonth, today]);
+
+  // Accessibility: announce streak changes
+  const prevStreakRef = useRef(allStreak.current);
+  const [streakAnnouncement, setStreakAnnouncement] = useState('');
+  useEffect(() => {
+    const currentVal = allStreak.current;
+    if (prevStreakRef.current !== currentVal) {
+      setStreakAnnouncement(`Streak updated: ${currentVal} day${currentVal === 1 ? '' : 's'}.`);
+      prevStreakRef.current = currentVal;
+    }
+  }, [allStreak.current]);
+
+  // Lazy load heatmap when scrolled into view
+  useEffect(() => {
+    if (heatmapVisible) return; // already loaded
+    if (!heatmapRef.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      const first = entries[0];
+      if (first.isIntersecting) {
+        setHeatmapVisible(true);
+        observer.disconnect();
+      }
+    }, { root: null, rootMargin: '120px', threshold: 0.1 });
+    observer.observe(heatmapRef.current);
+    return () => observer.disconnect();
+  }, [heatmapVisible]);
+
   // --- RENDER ---
   if (loading) {
     return (
@@ -503,12 +583,17 @@ function App() {
       ) : (
         <main className="p-4 sm:p-6 lg:p-8 max-w-screen-2xl mx-auto">
           <AppHeader user={user} onSignOut={handleSignOut} />
-          <StatsBar ym={ym} setYm={setYm} habitsCount={habits.length} allDoneCount={allDoneDays.size} allStreak={allStreak} />
+          <StatsBar ym={ym} setYm={setYm} habitsCount={habits.length} allDoneCount={allDoneDays.size} allStreak={allStreak} onJumpToday={scrollToToday} isCurrentMonth={isCurrentMonth} />
+          <div aria-live="polite" role="status" className="sr-only">{streakAnnouncement}</div>
           
           <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[340px_1fr] gap-6 lg:gap-8 mt-6">
             <div className="space-y-6 order-last md:order-first">
-              <div className="card p-3">
-                {MemoizedContributionCalendar ? <MemoizedContributionCalendar compact habits={habits} checks={checks} year={currentYear} /> : <CardSkeleton lines={4} />}
+              <div className="card p-3" ref={heatmapRef}>
+                {heatmapVisible && MemoizedContributionCalendar ? (
+                  <MemoizedContributionCalendar compact habits={habits} checks={checks} year={currentYear} />
+                ) : (
+                  <HeatmapSkeleton />
+                )}
               </div>
               <div className="card">
                 <h2 className="text-lg font-semibold mb-3 dark:text-slate-100 flex items-center justify-between">Habits <span className="text-sm font-medium tabular-nums text-slate-500 dark:text-slate-400">{habits.length}</span></h2>

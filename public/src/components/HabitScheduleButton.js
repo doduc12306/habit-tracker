@@ -5,6 +5,7 @@ function HabitScheduleButton({ habit, onChange }) {
   const anchorRef = React.useRef(null);
   const popupRef = React.useRef(null);
   const [coords, setCoords] = React.useState({ top: 0, left: 0 });
+  const previouslyFocused = React.useRef(null);
 
   // Close when clicking outside
   React.useEffect(() => {
@@ -43,6 +44,41 @@ function HabitScheduleButton({ habit, onChange }) {
     return () => { window.removeEventListener('resize', update); window.removeEventListener('scroll', update); };
   }, [open]);
 
+  // Focus trap & ESC close
+  React.useEffect(() => {
+    if (!open) return;
+    previouslyFocused.current = document.activeElement;
+    const node = popupRef.current;
+    if (node) {
+      const focusable = node.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (focusable.length) focusable[0].focus();
+    }
+    function handleKey(e) {
+      if (!open) return;
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpen(false);
+        if (previouslyFocused.current && previouslyFocused.current.focus) previouslyFocused.current.focus();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusable = node.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKey, true);
+    return () => document.removeEventListener('keydown', handleKey, true);
+  }, [open]);
+
   const sched = habit.schedule || { mode: "weekdays", daysOfWeek: Array(7).fill(true) };
   const [domInput, setDomInput] = React.useState((sched.daysOfMonth || []).join(","));
   const [quota, setQuota] = React.useState(Number(sched.timesPerWeek || 3));
@@ -52,11 +88,14 @@ function HabitScheduleButton({ habit, onChange }) {
   
   return (
     <div className="inline-block" ref={anchorRef}>
-      <button onClick={() => setOpen(o => !o)} className="btn-soft">Schedule</button>
+  <button onClick={() => setOpen(o => !o)} className="btn-soft" aria-haspopup="dialog" aria-expanded={open} aria-controls={open?`sched-pop-${habit.id}`:undefined}>Schedule</button>
       {open && ReactDOM.createPortal((
         <div
           ref={popupRef}
-          className="w-72 fixed rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-3 text-sm shadow-xl shadow-black/10 animate-fade-in"
+          id={`sched-pop-${habit.id}`}
+          role="dialog"
+          aria-modal="true"
+          className="w-72 fixed rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-3 text-sm shadow-xl shadow-black/10 animate-fade-in focus:outline-none"
           style={{ top: coords.top, left: coords.left, zIndex: 100000 }}
         >
           <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
@@ -94,7 +133,7 @@ function HabitScheduleButton({ habit, onChange }) {
               <div className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">Times per week (0–7)</div>
               <input type="number" min={0} max={7} value={Number.isFinite(quota) ? quota : 0} onChange={(e) => { const n = Math.max(0, Math.min(7, parseInt(e.target.value || "0", 10))); setQuota(n); }} className="w-full rounded-md border border-slate-300/70 dark:border-slate-600/60 bg-transparent px-2 py-1 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
               <div className="mt-2 text-right"><button onClick={applyQuota} className="btn-soft !py-1 !px-2">Apply</button></div>
-              <p className="mt-2 text-[11px] leading-snug text-slate-500 dark:text-slate-400">This mode allows free ticking; progress is measured by completions per week.</p>
+              <p className="mt-2 text-[11px] leading-snug text-slate-500 dark:text-slate-400">Quota mode: you can tick any day. Each calendar week counts up to the target (max {quota}). Extra ticks beyond the weekly target don't increase progress.</p>
             </div>
           )}
           <div className="mt-3 text-right"><button onClick={() => setOpen(false)} className="text-xs text-slate-600 dark:text-slate-400 hover:underline">Close</button></div>

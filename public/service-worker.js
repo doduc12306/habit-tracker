@@ -1,6 +1,6 @@
 // Versioned service worker with optimizations: navigation preload, cache trimming, split strategies
 // Increment SW_VERSION when deploying new UI so clients refresh automatically
-const SW_VERSION = 'v3-20250903-3';
+const SW_VERSION = 'v4-20250903-1';
 const PRECACHE_PREFIX = 'habit-precache-';
 const RUNTIME_PREFIX = 'habit-runtime-';
 const PRECACHE = `${PRECACHE_PREFIX}${SW_VERSION}`;
@@ -81,6 +81,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  // Ignore non-http(s) schemes (e.g. chrome-extension, devtools)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
   const isSameOrigin = url.origin === self.location.origin;
   const isNavigation = request.mode === 'navigate';
 
@@ -126,7 +128,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith((async () => {
     try {
       const resp = await fetch(request);
-      if (resp && resp.status === 200 && resp.type === 'basic') {
+  if (resp && resp.status === 200 && resp.type === 'basic' && (url.protocol === 'http:' || url.protocol === 'https:')) {
         const cache = await caches.open(RUNTIME);
         cache.put(request, resp.clone());
         trimCache(RUNTIME, RUNTIME_MAX_ENTRIES);
