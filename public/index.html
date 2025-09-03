@@ -192,6 +192,26 @@
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#0b1118] dark:via-[#0d161f] dark:to-[#101c28] text-slate-800 dark:text-slate-200 selection:bg-emerald-500/30 selection:text-emerald-100">
 <div id="root"></div>
+<!-- PWA Install Prompt Container -->
+<div id="pwa-install-prompt" class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-[100000] hidden">
+  <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 backdrop-blur p-4 shadow-xl shadow-black/20 flex flex-col gap-3">
+    <div class="flex items-start gap-3">
+      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-sm">App</div>
+      <div class="flex-1">
+        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Cài đặt ứng dụng</h3>
+        <p class="text-xs mt-1 text-slate-600 dark:text-slate-400 leading-snug">Thêm Habit Tracker vào màn hình chính để dùng nhanh, offline và toàn màn hình.</p>
+      </div>
+      <button id="pwa-install-close" aria-label="Đóng" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M5.22 5.22a.75.75 0 011.06 0L8 6.94l1.72-1.72a.75.75 0 111.06 1.06L9.06 8l1.72 1.72a.75.75 0 11-1.06 1.06L8 9.06l-1.72 1.72a.75.75 0 01-1.06-1.06L6.94 8 5.22 6.28a.75.75 0 010-1.06z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+    <div class="flex gap-2">
+      <button id="pwa-install-dismiss" class="flex-1 btn-soft !py-2 text-xs">Để sau</button>
+      <button id="pwa-install-action" class="flex-1 btn-primary !py-2 text-xs">Cài đặt</button>
+    </div>
+    <div id="pwa-ios-hint" class="hidden text-[11px] text-slate-500 dark:text-slate-400 leading-snug pt-1">Nhấn nút Chia sẻ rồi chọn "Add to Home Screen".</div>
+  </div>
+</div>
 
 <!-- Drag scroll helper -->
 <script>
@@ -253,5 +273,82 @@
     }
     window.addEventListener('load', register);
   })();
+  </script>
+  <script>
+    // PWA Install Prompt (mobile A2HS)
+    (function(){
+      const promptEl = document.getElementById('pwa-install-prompt');
+      const actionBtn = document.getElementById('pwa-install-action');
+      const dismissBtn = document.getElementById('pwa-install-dismiss');
+      const closeBtn = document.getElementById('pwa-install-close');
+      const iosHint = document.getElementById('pwa-ios-hint');
+      let deferredEvt = null;
+      const LS_KEY = 'ht_pwa_prompt_v1';
+      const MIN_DAYS = 2; // only show if user used app after some time (can extend with usage metrics)
+
+      function isStandalone(){
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      }
+      function isMobile(){
+        return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+      }
+      function shouldShow(){
+        if(!isMobile() || isStandalone()) return false;
+        try{
+          const raw = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+          if(raw.dismissed) return false;
+          if(raw.firstSeen){
+            const days = (Date.now() - raw.firstSeen) / 86400000;
+            if(days < MIN_DAYS) return false;
+          } else {
+            raw.firstSeen = Date.now();
+            localStorage.setItem(LS_KEY, JSON.stringify(raw));
+            return false; // set baseline first visit
+          }
+          return true;
+        }catch(e){ return true; }
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredEvt = e;
+        if(shouldShow()) showPrompt();
+      });
+
+      function showPrompt(){
+        if(!promptEl) return;
+        // Detect iOS (no beforeinstallprompt support)
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+        if(isIOS){
+          iosHint.classList.remove('hidden');
+          actionBtn.classList.add('hidden');
+        }
+        promptEl.classList.remove('hidden');
+        promptEl.animate([{ transform:'translate(-50%, 30px)', opacity:0 }, { transform:'translate(-50%,0)', opacity:1 }], { duration:260, easing:'ease-out' });
+      }
+
+      actionBtn?.addEventListener('click', async () => {
+        if(!deferredEvt) return;
+        deferredEvt.prompt();
+        const choice = await deferredEvt.userChoice.catch(()=>({ outcome:'dismissed'}));
+        if(choice.outcome === 'accepted') markDone();
+        hidePrompt();
+      });
+      dismissBtn?.addEventListener('click', () => { markDismissed(); hidePrompt(); });
+      closeBtn?.addEventListener('click', () => { markDismissed(); hidePrompt(); });
+
+      function hidePrompt(){
+        promptEl.animate([{ opacity:1, transform:'translate(-50%,0)'},{ opacity:0, transform:'translate(-50%,10px)'}], { duration:180, easing:'ease-in' }).onfinish = ()=>{
+          promptEl.classList.add('hidden');
+        };
+      }
+      function markDismissed(){ try { localStorage.setItem(LS_KEY, JSON.stringify({ dismissed:true })); } catch(e){} }
+      function markDone(){ try { localStorage.setItem(LS_KEY, JSON.stringify({ installed:true })); } catch(e){} }
+
+      // Fallback for iOS (no event) after delay
+      setTimeout(()=>{
+        if(!deferredEvt && shouldShow()) showPrompt();
+      }, 4000);
+    })();
   </script>
 </html>

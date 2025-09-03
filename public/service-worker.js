@@ -1,6 +1,6 @@
 // Versioned service worker with optimizations: navigation preload, cache trimming, split strategies
 // Increment SW_VERSION when deploying new UI so clients refresh automatically
-const SW_VERSION = 'v4-20250903-1';
+const SW_VERSION = 'v4-20250903-2';
 const PRECACHE_PREFIX = 'habit-precache-';
 const RUNTIME_PREFIX = 'habit-runtime-';
 const PRECACHE = `${PRECACHE_PREFIX}${SW_VERSION}`;

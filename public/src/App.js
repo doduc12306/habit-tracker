@@ -286,7 +286,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const heatmapRef = useRef(null);
-  const [heatmapVisible, setHeatmapVisible] = useState(false);
+  const [heatmapVisible, setHeatmapVisible] = useState(true); // force visible immediately
   
   const [ym, setYm] = useLocalStorage("ht_ym", [today.getFullYear(), today.getMonth()]);
   
@@ -534,20 +534,7 @@ function App() {
     }
   }, [allStreak.current]);
 
-  // Lazy load heatmap when scrolled into view
-  useEffect(() => {
-    if (heatmapVisible) return; // already loaded
-    if (!heatmapRef.current) return;
-    const observer = new IntersectionObserver((entries) => {
-      const first = entries[0];
-      if (first.isIntersecting) {
-        setHeatmapVisible(true);
-        observer.disconnect();
-      }
-    }, { root: null, rootMargin: '120px', threshold: 0.1 });
-    observer.observe(heatmapRef.current);
-    return () => observer.disconnect();
-  }, [heatmapVisible]);
+  // (Removed lazy IntersectionObserver; heatmap loads immediately)
 
   // --- RENDER ---
   if (loading) {
