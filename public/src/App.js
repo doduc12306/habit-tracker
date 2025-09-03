@@ -64,40 +64,48 @@ const MemoizedGoalItem = memo(({ goal, onRemove, onToggle }) => (
 const MemoizedHabitRow = memo(({ habit, monthChecks, daysList, ym, onToggle }) => {
     const row = monthChecks[habit.id] || {};
     const dayGridTemplate = `repeat(${daysList.length}, minmax(var(--day-min),1fr))`;
+  // Removed future-day disabling (allow ticking any active day for flexibility)
     return (
-        <div className="grid items-center justify-items-center gap-2 px-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style={{ gridTemplateColumns: dayGridTemplate, minHeight: "var(--row-h)" }}>
-            {daysList.map(d => {
-                const date = new Date(ym[0], ym[1], d);
-                const active = isActiveOnDate(habit, date);
-                const checked = !!row[d];
-                const base = "h-9 w-9 rounded-lg border text-sm transition-all shadow-sm outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center justify-center";
-                const activeUnchecked = "border-slate-300/70 dark:border-slate-600/60 bg-white/70 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:border-emerald-400 dark:hover:border-emerald-500";
-                const activeChecked = "border-emerald-600/90 bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold shadow";
-                const inactive = "border-dashed border-slate-200/60 dark:border-slate-700/50 bg-slate-100/60 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 cursor-not-allowed";
-                return (
-                    <button key={d} onClick={() => active && onToggle(habit.id, d)} className={[base, active ? (checked ? activeChecked : activeUnchecked) : inactive].join(" ")} title={`Day ${d}${active ? "" : " (inactive)"}`} disabled={!active}>{checked ? "✓" : ""}</button>
-                );
-            })}
-        </div>
+      <div className="grid items-center justify-items-center gap-2 px-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style={{ gridTemplateColumns: dayGridTemplate, minHeight: 'var(--row-h)' }}>
+        {daysList.map(d => {
+          const date = new Date(ym[0], ym[1], d);
+          const active = isActiveOnDate(habit, date);
+          const checked = !!row[d];
+          const base = "h-9 w-9 rounded-lg border text-sm transition-all shadow-sm outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center justify-center";
+          const activeUnchecked = "border-slate-300/70 dark:border-slate-600/60 bg-white/70 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:border-emerald-400 dark:hover:border-emerald-500";
+          const activeChecked = "border-emerald-600/90 bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold shadow";
+            const inactive = "border-dashed border-slate-200/60 dark:border-slate-700/50 bg-slate-100/60 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 cursor-not-allowed";
+          const cls = active ? (checked ? activeChecked : activeUnchecked) : inactive;
+          return (
+            <button
+              key={d}
+              onClick={() => active && onToggle(habit.id, d)}
+              className={[base, cls].join(' ')}
+              title={`Day ${d}${active ? '' : ' (inactive)'}`}
+              disabled={!active}
+            >{checked ? '✓' : ''}</button>
+          );
+        })}
+      </div>
     );
 });
 
     // Sticky stats + month picker bar
     const StatsBar = memo(({ ym, setYm, habitsCount, allDoneCount, allStreak }) => {
       return (
-        <div className="sticky top-[4rem] z-40 bg-white/85 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-3 space-y-3">
+        <div className="sticky top-[4rem] z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-3 space-y-3">
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
             <div className="w-full md:w-60"><MemoizedMonthYearPicker value={ym} onChange={setYm} /></div>
             <div className="flex-1 grid grid-cols-3 sm:grid-cols-6 md:grid-cols-3 lg:grid-cols-6 gap-2">
-              <div className="card py-2 px-3 shadow-sm dark:bg-slate-900/50 dark:border-slate-800 flex flex-col items-center justify-center">
+              <div className="card py-2 px-3 shadow-sm dark:bg-slate-800 dark:border-slate-700 flex flex-col items-center justify-center">
                 <div className="text-[10px] sm:text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Habits</div>
                 <div className="mt-0.5 text-xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{habitsCount}</div>
               </div>
-              <div className="card py-2 px-3 shadow-sm dark:bg-slate-900/50 dark:border-slate-800 flex flex-col items-center justify-center">
+              <div className="card py-2 px-3 shadow-sm dark:bg-slate-800 dark:border-slate-700 flex flex-col items-center justify-center">
                 <div className="text-[10px] sm:text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">All-done days</div>
                 <div className="mt-0.5 text-xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{allDoneCount}</div>
               </div>
-              <div className="card py-2 px-3 shadow-sm dark:bg-slate-900/50 dark:border-slate-800 flex flex-col items-center justify-center">
+              <div className="card py-2 px-3 shadow-sm dark:bg-slate-800 dark:border-slate-700 flex flex-col items-center justify-center">
                 <div className="text-[10px] sm:text-[11px] uppercase tracking-wide font-medium text-slate-500 dark:text-slate-400">Streak</div>
                 {(() => { const c = allStreak.current; let f = 0; if (c>0){ if(c<=10)f=1; else if(c<=20)f=2; else f=3;} return (
                   <div className="mt-0.5 flex items-center gap-1"><span className="text-xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{c}</span><span className="flex" aria-hidden="true">{Array.from({length:f}).map((_,i)=><span key={i}>🔥</span>)}</span></div>
@@ -124,22 +132,18 @@ const MemoizedDailyCompletionBar = memo(({ perDayCompletion, daysList, dayGridTe
       </div>
     ));
 const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, onToggle, perDayCompletion, allDoneDays, perHabitProgress }) => (
-  <div className="w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/30">
-    <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-900/70 backdrop-blur">
-      <div className="flex items-center px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700">Habit</div>
-      <div className="relative">
-        <div className="fade-left absolute inset-y-0 left-0"></div>
-        <div className="grid items-center gap-2 px-3 py-2 text-center text-[11px] font-medium text-slate-500 dark:text-slate-400 justify-items-center" style={{ gridTemplateColumns: dayGridTemplate }}>
-          {daysList.map(d => <div key={d} className="rounded-md w-full select-none">{d}</div>)}
-        </div>
-      </div>
+  <div className="w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+    <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+      <div className="flex items-center px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700" style={{minHeight:'var(--row-h)'}}>Habit</div>
+      <div style={{minHeight:'var(--row-h)'}}></div>
     </div>
     <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] max-h-[60vh] overflow-y-auto">
-      <div className="border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30">
-        {habits.map((h, idx) => {
+      <div className="border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
+        <div aria-hidden="true" className="border-b border-slate-200 dark:border-slate-800" style={{minHeight:'var(--row-h)'}}></div>
+    {habits.map((h, idx) => {
           const prog = perHabitProgress.find(p => p.id === h.id)?.pct ?? 0;
           return (
-            <div key={h.id} className={"group flex gap-3 px-3 text-sm border-b border-slate-200 dark:border-slate-800 transition-colors w-full " + (idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/70') + ' hover:bg-green-50/60 dark:hover:bg-green-900/20'} style={{ minHeight: 'var(--row-h)' }}>
+      <div key={h.id} className="group flex gap-3 px-3 text-sm border-b border-slate-200 dark:border-slate-800 transition-colors w-full bg-white dark:bg-slate-800 hover:bg-green-50/60 dark:hover:bg-green-900/20" style={{ minHeight: 'var(--row-h)' }}>
               <div className="flex flex-col justify-center w-full overflow-hidden">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-slate-500 dark:bg-slate-400 flex-shrink-0" />
@@ -155,10 +159,16 @@ const HabitGrid = memo(({ habits, monthChecks, daysList, dayGridTemplate, ym, on
         })}
         <div className="px-3 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-xs text-slate-600 dark:text-slate-400 w-full">Daily Completion</div>
       </div>
-      <div className="relative overflow-x-auto bg-white dark:bg-slate-900/30 drag-scroll-x cursor-grab" data-drag-scroll>
+  <div className="relative overflow-x-auto bg-white dark:bg-slate-800 drag-scroll-x cursor-grab" data-drag-scroll>
         <div className="min-w-full">
+          <div className="sticky top-0 z-10 bg-white/85 dark:bg-slate-900/75 backdrop-blur px-3 flex items-center" style={{minHeight:'var(--row-h)'}}>
+            <div className="fade-left absolute inset-y-0 left-0 pointer-events-none"></div>
+            <div className="grid items-center gap-2 text-center text-[11px] font-medium text-slate-500 dark:text-slate-400 justify-items-center" style={{ gridTemplateColumns: dayGridTemplate }}>
+              {daysList.map(d => <div key={d} className="rounded-md w-full select-none">{d}</div>)}
+            </div>
+          </div>
           {habits.map((h, idx) => (
-            <div key={h.id} className={(idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/70') + ' group hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-colors'}>
+            <div key={h.id} className="bg-white dark:bg-slate-800 group hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-colors">
               <MemoizedHabitRow
                 habit={h}
                 monthChecks={monthChecks}
@@ -241,7 +251,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   
   const [ym, setYm] = useLocalStorage("ht_ym", [today.getFullYear(), today.getMonth()]);
-  const [selectedYear, setSelectedYear] = useLocalStorage("ht_year", today.getFullYear());
+  
+  // Get year from the month picker
+  const currentYear = ym[0];
 
   const [habits, setHabits] = useLocalStorage("ht_habits", []);
   const [goals, setGoals] = useLocalStorage("ht_goals", []); // [{id,text,done}]
@@ -476,7 +488,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen font-sans">
+  <div className="min-h-screen font-sans bg-slate-50 dark:bg-slate-900">
       {!user ? (
         <div className="flex items-center justify-center h-screen">
           <div className="text-center card max-w-sm mx-auto">
@@ -495,8 +507,8 @@ function App() {
           
           <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[340px_1fr] gap-6 lg:gap-8 mt-6">
             <div className="space-y-6 order-last md:order-first">
-              <div className="card">
-                <MemoizedMiniCalendar monthStart={monthStart} days={totalDays} allDoneDays={allDoneDays} />
+              <div className="card p-3">
+                {MemoizedContributionCalendar ? <MemoizedContributionCalendar compact habits={habits} checks={checks} year={currentYear} /> : <CardSkeleton lines={4} />}
               </div>
               <div className="card">
                 <h2 className="text-lg font-semibold mb-3 dark:text-slate-100 flex items-center justify-between">Habits <span className="text-sm font-medium tabular-nums text-slate-500 dark:text-slate-400">{habits.length}</span></h2>
@@ -538,11 +550,7 @@ function App() {
                 </ul>
                 <GoalInput onAdd={addGoal} />
               </div>
-              <div className="card">
-                <div className="w-fit mx-auto">
-                  {MemoizedContributionCalendar ? <MemoizedContributionCalendar habits={habits} checks={checks} year={selectedYear} onYearChange={setSelectedYear} /> : <CardSkeleton lines={4} />}
-                </div>
-              </div>
+              {/* Heatmap moved to left column in compact mode; remove from here */}
             </div>
           </div>
         </main>
@@ -596,23 +604,58 @@ function GoalInput({ onAdd }) {
   );
 }
 
-// Skeleton components
-function SkeletonBar({ className="" }) { return <div className={"skeleton " + className} /> }
-function CardSkeleton({ lines=3 }) {
+// --- Skeleton (fallback) rewrite ---
+// Base skeleton block with pulse + subtle gradient overlay
+function Skeleton({ className="", rounded="rounded-md" }) {
   return (
-    <div className="card">
-      <div className="space-y-3">
-        {Array.from({length:lines}).map((_,i)=><SkeletonBar key={i} className="h-4 w-full" />)}
+    <div className={`relative overflow-hidden ${rounded} bg-slate-200/70 dark:bg-slate-700/50 animate-pulse ${className}`} />
+  );
+}
+
+// Generic card skeleton with optional title bar and lines
+function CardSkeleton({ lines = 3, title = true }) {
+  return (
+    <div className="card p-4 space-y-4">
+      {title && <Skeleton className="h-5 w-40" />}
+      <div className="space-y-2">
+        {Array.from({ length: lines }).map((_, i) => (
+          <Skeleton key={i} className="h-4 w-full" />
+        ))}
       </div>
     </div>
   );
 }
-function GridSkeleton() {
+
+// Grid (habit cells) skeleton
+function GridSkeleton({ cells = 30 }) {
   return (
     <div className="card p-4 space-y-4">
-      <SkeletonBar className="h-5 w-40" />
-      <div className="grid grid-cols-6 gap-2">
-        {Array.from({length:24}).map((_,i)=><SkeletonBar key={i} className="h-9" />)}
+      <Skeleton className="h-5 w-52" />
+      <div className="grid grid-cols-7 sm:grid-cols-10 md:grid-cols-14 gap-2">
+        {Array.from({ length: cells }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-full rounded-lg" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Heatmap skeleton (quarter blocks look)
+function HeatmapSkeleton() {
+  return (
+    <div className="card p-3 space-y-3">
+      <div className="space-y-2">
+        {[0,1,2].map(q => (
+          <div key={q} className="flex gap-[2px]">
+            {Array.from({ length: 20 }).map((_, c) => (
+              <div key={c} className="flex flex-col gap-[2px]">
+                {Array.from({ length: 7 }).map((_, r) => (
+                  <Skeleton key={r} className="h-3 w-3 rounded-[2px]" />
+                ))}
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   );

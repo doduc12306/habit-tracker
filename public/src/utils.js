@@ -1,6 +1,6 @@
 const MONTHS_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MONTHS_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const WEEKDAYS_LABEL = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAYS_LABEL = ["M", "T", "W", "T", "F", "S", "S"];
 
 function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate() }
 function isToday(date) { const t = new Date(); return date.getFullYear() === t.getFullYear() && date.getMonth() === t.getMonth() && date.getDate() === t.getDate() }

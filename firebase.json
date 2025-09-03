@@ -12,6 +12,27 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "headers": [
+      {
+        "source": "/service-worker.js",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+            { "key": "Service-Worker-Allowed", "value": "/" }
+        ]
+      },
+      {
+        "source": "/index.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css|webmanifest)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
+        ]
+      }
+    ],
     "rewrites": [
       {
         "source": "**",

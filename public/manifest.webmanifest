@@ -8,6 +8,11 @@
   "background_color": "#0f172a",
   "theme_color": "#16a34a",
   "orientation": "portrait-primary",
+  "categories": ["productivity", "lifestyle", "health"],
+  "shortcuts": [
+    { "name": "Add Habit", "short_name": "New Habit", "url": "/#add-habit", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}] },
+    { "name": "Today", "short_name": "Today", "url": "/#today", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}] }
+  ],
   "icons": [
     {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
     {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},

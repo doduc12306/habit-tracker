@@ -144,6 +144,50 @@
     * {
       transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     }
+    
+    /* Ensure modals and popups are always visible */
+    .z-50 {
+      z-index: 99999 !important;
+    }
+    
+    /* Modal backdrop blur and overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(4px);
+      z-index: 99998;
+    }
+    
+    /* Popup positioning and visibility */
+    .popup-container {
+      position: relative;
+      z-index: 99999 !important;
+    }
+    
+    .popup-content {
+      position: absolute !important;
+      z-index: 100000 !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+    }
+    
+    .dark .popup-content {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Prevent other elements from creating stacking contexts above popups */
+    .card {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .card:hover {
+      z-index: 2;
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#0b1118] dark:via-[#0d161f] dark:to-[#101c28] text-slate-800 dark:text-slate-200 selection:bg-emerald-500/30 selection:text-emerald-100">
@@ -176,4 +220,38 @@
 <script type="text/babel" data-presets="react" src="src/components/ContributionCalendar.js"></script>
 <script type="text/babel" data-presets="react" src="src/App.js"></script>
 </body>
+<script>
+  // Service worker registration with auto-refresh on new version
+  (function(){
+    if(!('serviceWorker' in navigator)) return;
+    const REG_PATH = '/service-worker.js';
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if(refreshing) return; refreshing = true; window.location.reload();
+    });
+    async function register(){
+      try {
+        const reg = await navigator.serviceWorker.register(REG_PATH, { updateViaCache: 'none' });
+        // Listen messages from SW (activation notice)
+        navigator.serviceWorker.addEventListener('message', (e)=>{
+          if(e.data && e.data.type==='SW_ACTIVATED'){ /* could show toast */ }
+        });
+        // Check for updates periodically
+        setInterval(()=>{ reg.update().catch(()=>{}); }, 5*60*1000);
+        // If waiting worker exists, trigger skipWaiting to activate immediately
+        if(reg.waiting){ reg.waiting.postMessage({type:'SKIP_WAITING'}); }
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing; if(!nw) return;
+          nw.addEventListener('statechange', () => {
+            if(nw.state==='installed' && navigator.serviceWorker.controller){
+              // new content ready -> activate now
+              nw.postMessage({type:'SKIP_WAITING'});
+            }
+          });
+        });
+      } catch(e) { console.warn('SW reg failed', e); }
+    }
+    window.addEventListener('load', register);
+  })();
+  </script>
 </html>
